@@ -11,7 +11,6 @@ fn move_camera(
     mut query_camera: Query<(&mut Camera, &mut Transform)>,
     keys: Res<Input<KeyCode>>,
 ) {
-
     let (mut camera, mut camera_transform) = camera_query.single_mut();
 
     let mut new_pos = camera_transform.translation;
