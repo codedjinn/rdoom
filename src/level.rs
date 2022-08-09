@@ -1,13 +1,22 @@
 use bevy::prelude::*;
+use super::layers;
 //use heron::prelude::*; 
+
+pub const tile_size: f32 = 32.0;
 
 #[derive(Component)]
 struct Level {
     pub name: String,
-    pub isLoaded: bool,
+    pub is_loaded: bool,
     pub width: u32,
     pub height: u32,
-    tiles: Vec<Tile>,   
+    tiles: Vec<Tile>,
+    handle: Option<Handle<Image>>,
+}
+
+struct WallSegment {
+    pub start: Vec2,
+    pub end: Vec2,
 }
 
 enum TileType {
@@ -28,9 +37,10 @@ impl Level {
 
         let mut result = Level {
             name: String::from(name),
-            isLoaded: false,
+            is_loaded: false,
+            handle: None,
             width, height,
-            tiles,
+            tiles,            
         };
         result.init();
 
@@ -79,21 +89,25 @@ impl Level {
 
 pub struct LevelPlugin;
 
-
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(demo_level);
+        app.add_system(render_level);
         //     .add_system(player_movement);
     }
 }
 
-fn demo_level(mut commands: Commands) {
+fn demo_level(
+    mut commands: Commands,
+    assets: Res<AssetServer>
+) {
 
-    let mut level = Level::new("demo", 128, 128);
+    let mut level = Level::new("demo", 24, 24);
+    level.is_loaded = true;
+    level.handle = Some(assets.load("textures/tiles/floor4_6.png"));
 
     commands.spawn()
-            .insert(level);
-
+            .insert(level);    
 }
 
 fn render_level(
@@ -102,29 +116,52 @@ fn render_level(
     mut query_level: Query<&Level>,
 ) {
     let level = query_level.single();
+    // if (level.is_loaded) {
+    //     //let tile_handle = ;
 
+    //    // let mut sprites = vec![];
 
-    // if (level.isLoaded) {
+    //     for tile in &level.tiles {
+    //        // sprites.push(
+    //         commands.entity().spawn_bundle(SpriteBundle {
+    //             texture: level.handle.clone().unwrap(),
+    //             transform: Transform {
+    //                 translation: Vec3::new((tile.x as f32) * tile_size, (tile.y as f32) * tile_size, layers::LEVEL3_FLOOR_LAYER),
+    //                 rotation: Quat::IDENTITY,
+    //                 scale: Vec3::ONE,
+    //             },
+    //             sprite: Sprite {
+    //                 custom_size: Some(Vec2::new(tile_size, tile_size)),                        
+    //                 ..default()
+    //             },
+    //             ..default()
+    //         });
+    //     }
+       
 
-    //     let tile_handle = assets.load("textures/tiles/floor4_6.png");
-
-    //     let mut sprites = vec![];
-    //     sprites.push(SpriteBundle {
-    //                         texture: tile_handle.clone(),
-    //                         transform: Transform {
-    //                             translation: Vec3::new(0.0,0.0,-0.05),
-    //                             rotation: Quat::IDENTITY,
-    //                             scale: Vec3::ONE,
-    //                         },
-    //                         sprite: Sprite {
-    //                             custom_size: Some(Vec2::new(32.0, 32.0)),
-    //                             ..default()
-    //                         },
-    //                         ..default()
-    //                     });
-
-    //     commands.spawn_batch(sprites);
+    //    // commands.spawn_batch(sprites);
     // }
+    if level.is_loaded {
+      //  let tile_handle = assets.load("textures/tiles/floor4_6.png");
+
+        let mut sprites = vec![];
+        for tile in &level.tiles {
+            sprites.push(SpriteBundle {
+                texture: level.handle.clone().unwrap(),
+                transform: Transform {
+                    translation: Vec3::new((tile.x as f32) * tile_size, (tile.y as f32) * tile_size, layers::LEVEL3_FLOOR_LAYER),
+                    rotation: Quat::IDENTITY,
+                    scale: Vec3::ONE,
+                },
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(tile_size, tile_size)),
+                    ..default()
+                },
+                ..default()
+            });
+        }
+        commands.spawn_batch(sprites);
+    }
 }
 // fn load_level(
 //     mut commands: Commands,
@@ -148,32 +185,32 @@ fn render_level(
 //     let tile_size = 32.0;
 
     
-//     let tex = assets.load("textures/tiles/floor4_6.png");
+   // let tex = assets.load("textures/tiles/floor4_6.png");
 
-//     let mut sprites = vec![];
-//     for y in 0..10 {
-//         for x in 0..10 {
+    // // let mut sprites = vec![];
+    // for y in 0..10 {
+    //     for x in 0..10 {
 
-//             let pos = Vec2::new(x as f32, y as f32);
-//             let translation = Vec3::new(100.0, 100.0, -0.05); // Vec3::new(pos.x * tile_size, pos.y * tile_size, 0.0);
-//             let scale = Vec3::ONE;
-//             let rotation = Quat::IDENTITY;
+    //         let pos = Vec2::new(x as f32, y as f32);
+    //         let translation = Vec3::new(100.0, 100.0, -0.05); // Vec3::new(pos.x * tile_size, pos.y * tile_size, 0.0);
+    //         let scale = Vec3::ONE;
+    //         let rotation = Quat::IDENTITY;
 
-//             sprites.push(SpriteBundle {
-//                 texture: tex.clone(),
-//                 transform: Transform {
-//                     translation,
-//                     rotation,
-//                     scale,
-//                 },
-//                 sprite: Sprite {
-//                     custom_size: Some(Vec2::new(tile_size, tile_size)),
-//                     ..default()
-//                 },
-//                 ..default()
-//             });
-//         }
-//     }
+    //         sprites.push(SpriteBundle {
+    //             texture: tex.clone(),
+    //             transform: Transform {
+    //                 translation,
+    //                 rotation,
+    //                 scale,
+    //             },
+    //             sprite: Sprite {
+    //                 custom_size: Some(Vec2::new(tile_size, tile_size)),
+    //                 ..default()
+    //             },
+    //             ..default()
+    //         });
+    //     }
+    // }
 
 //     commands.spawn_batch(sprites);
 // }
@@ -199,11 +236,24 @@ mod tests {
     }
 
     #[test]
-    fn should_get_tile() {
+    fn get_tile_should_retreive_instance() {
         let mut new_level = Level::new("", 10, 10);
         let tile = new_level.get(5, 5);
         assert_eq!(tile.x, 5);
         assert_eq!(tile.y, 5);
+    }
+
+    #[test]
+    fn should_be_able_to_change_existing_tile_type() {
+        let expected_tile_type = TileType::Wall;
+
+        let mut new_level = Level::new("", 10, 10);
+        
+        new_level.set(5,5,expected_tile_type);
+
+        let tile = new_level.get(5, 5);
+        
+        // assert_eq!(tile.tile_type, expected_tile_type);
     }
 
 }

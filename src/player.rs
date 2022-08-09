@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use heron::prelude::*;
+use super::layers;
 
 use crate::debug::DebugDisplayInfo;
 
@@ -45,7 +46,7 @@ impl Plugin for PlayerPlugin {
 
 fn startup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     let transform = Transform {
-        translation: Vec3::new(0.0, 0.0, 0.0),
+        translation: Vec3::new(0.0, 0.0, layers::OBJECT_LAYER),
         rotation: Quat::IDENTITY,
         scale: Vec3::ONE,
     };

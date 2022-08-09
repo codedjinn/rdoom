@@ -4,6 +4,8 @@ mod text;
 mod startup;
 mod debug;
 mod player;
+
+mod layers;
 mod level;
 
 use bevy::prelude::*;
