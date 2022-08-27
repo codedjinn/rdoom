@@ -1,159 +1,51 @@
-use bevy::prelude::*;
-use heron::prelude::*;
-use super::layers;
+use bevy::{prelude::*, render::render_resource::Texture};
+use bevy_rapier3d::prelude::*;
 
-use crate::debug::DebugDisplayInfo;
-
-use super::shared;
-
-enum PlayerFacing {
-    None,
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-    NnorthWest
-}
+use std::f32::consts::PI;
 
 #[derive(Component)]
-pub struct Player {
-    pub acc: f32,
-    pub vel: f32,
-    z: f32,
-}
-
-impl Player {
-    pub fn new(acc: f32, vel: f32) -> Self {
-        Player {
-            acc,
-            vel,
-            z: 0.0,
-        }
-    }
+struct Player {
+    image_handle: Handle<Image>
 }
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(startup_player)
-            .add_system(player_movement);
     }
 }
 
-fn startup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let transform = Transform {
-        translation: Vec3::new(0.0, 0.0, layers::OBJECT_LAYER),
-        rotation: Quat::IDENTITY,
-        scale: Vec3::ONE,
-    };
 
-    let sprite = SpriteBundle {
-        transform,
-        texture: asset_server.load("textures/dude/playb5.png"),
-        ..Default::default()
-    };
+// fn pew(
+//     mouse_button_input: Res<Input<MouseButton>>,
+//     cameras: Query<(&Transform, &Camera3d)>,
+//     mut meshes: ResMut<Assets<Mesh>>,
+//     mut materials: ResMut<Assets<StandardMaterial>>,
+//     mut commands: Commands
+// ) {
+//     if mouse_button_input.just_released(MouseButton::Left) {
+//         // for (transform, camera) in cameras.iter() {
+//         //     commands
+//         //     .spawn()
+//         //     .insert(RigidBody::Dynamic)
+//         //     .insert(Collider::ball(0.5))
+//         //     .insert(Restitution::coefficient(0.7))
+//         //     .insert( Velocity {
+//         //         linvel: Vec3::new(10.0, 0.0, 0.0),
+//         //         angvel: transform.back()
+//         //     })
+//         //     .insert_bundle(TransformBundle::from(transform.clone()))
+//         //     .insert_bundle(PbrBundle {
+//         //         mesh: meshes.add(Mesh::from(shape::Icosphere { radius: 0.5, subdivisions: 16 })),
+//         //         material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+//         //         transform: transform.clone(),
+//         //         ..default()
+//         //     });
+//         // }
+//     }
+// }
 
-    commands.spawn()
-        .insert(Player { 
-            acc: 0.0,
-            vel: 0.0,
-            z: 0.0,
-        })
-        .insert(CollisionShape::Cuboid
-            { 
-                half_extends: Vec3::new(32.0, 32.0, 0.0),
-                border_radius: Some(0.0)
-            })
-        .insert_bundle(sprite);
-       
-}
+// #[derive(Component)]
+// struct VoxelModel {
 
-const move_speed:f32 = 150.0;
-
-fn player_movement(
-    time: Res<Time>,
-    keys: Res<Input<KeyCode>>,
-    mut query_debug: Query<&mut DebugDisplayInfo>,
-    mut query_player: Query<(&mut Player, &mut Transform)>,
-) {
-    let mut debug_info = query_debug.single_mut();
-    let (mut player, mut transform) = query_player.single_mut();
-
-    let up = keys.pressed(KeyCode::W);
-    let down = keys.pressed(KeyCode::S);
-    let left = keys.pressed(KeyCode::A);
-    let right = keys.pressed(KeyCode::D);
-
-    let k = keys.pressed(KeyCode::K);
-
-    debug_info.output1 = format!("Player Z: {:?}", player.z);
-    debug_info.output2 = format!("Transform: {:?}", transform.translation);
-    if k {
-        player.z += 0.01;
-        transform.translation.z = player.z;
-    }
-
-    if up {
-        transform.translation.y = transform.translation.y + (move_speed * time.delta_seconds());
-    }
-    else if down {
-        transform.translation.y = transform.translation.y - (move_speed * time.delta_seconds());
-    }
-
-    if left {
-        transform.translation.x = transform.translation.x - (move_speed * time.delta_seconds());
-    } else if right {
-        transform.translation.x = transform.translation.x + (move_speed * time.delta_seconds());
-    }
-    // else if down {
-    //     transform.translation.y = transform.translation.y - (move_speed * time.delta_seconds());
-    // }
-
-    // if left {
-    //     transform.translation.x = transform.translation.x - (move_speed * time.delta_seconds());
-    // }
-    // else if right {
-    //     transform.translation.x = transform.translation.x + (move_speed * time.delta_seconds());
-    // }
-
-    // debug_info.output1 = format!("{:?}", transform.translation); 
-
-    // let mut dy = 0.0;
-    // let mut dir:f32 = 1.0;
-
-    // if up {
-    //     player.acc = player.acc + 0.1;
-    //     key_pressed = true;
-    // }
-    // else if down {
-    //     player.acc = player.acc + 0.1;
-    //     dir = dir * -1.0;
-    //     key_pressed = true;
-    // }
-
-    // if left {
-    //     //body.linvel = Vec2::new(-100.0, 0.0).into();
-    //     key_pressed = true;
-    // }
-    // else if right {
-    //     //body.linvel = Vec2::new(100.0, 0.0).into();
-    //     key_pressed = true;
-    // }
-
-    // debug_info.output1 = format!("acc - {:?}", player.acc);
-
-    // dy = player.acc * move_speed * time.delta_seconds() * dir;
-    // transform.translation.y = transform.translation.y + dy;
-    
-    // if !key_pressed {
-    //     player.acc = player.acc - 0.1;
-    //     if player.acc < 0.0 {
-    //         player.acc = 0.0;
-    //     }
-    // }
-}
-
+// }

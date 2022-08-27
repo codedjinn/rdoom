@@ -57,11 +57,11 @@ pub fn startup_debug_info_text(mut commands: Commands, asset_server: Res<AssetSe
             },
             style: Style {
                 position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(5.0),
-                    left: Val::Px(5.0),
-                    ..Default::default()
-                },
+                // position: Rect {
+                //     top: Val::Px(5.0),
+                //     left: Val::Px(5.0),
+                //     ..Default::default()
+                // },
                 
                 ..Default::default()
             },
