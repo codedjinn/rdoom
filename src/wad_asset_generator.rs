@@ -1,16 +1,13 @@
 use bevy::prelude::*;
 
 use crate::game::{GameState, DoomGame};
-//use crate::doom::wad::{Wad};
 
 pub struct WadResourceTracker {
     pub is_loaded: bool,
     pub failures: u32,
     
     images: Vec<Handle<Image>>,
-
-
-    debug: Option<Handle<Image>>,
+    pub debug: Option<Handle<Image>>,
 
     once: bool,
 }
@@ -97,6 +94,7 @@ fn do_something(
         for x in 0u32..32u32 {
             for y in 0u32..63u32 {
                 let pixel = get_pixel(x, y, 63, &img.data);
+                
             }
         }
     }
