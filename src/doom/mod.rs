@@ -30,7 +30,15 @@ use std::collections::HashMap;
 use wad::Entry;
 
 const DOOM_MAP_LUMPS: [&str; 10] = [
-    "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SEGS", "SSECTORS", "NODES", "SECTORS", "REJECT",
+    "THINGS",
+    "LINEDEFS",
+    "SIDEDEFS",
+    "VERTEXES",
+    "SEGS",
+    "SSECTORS",
+    "NODES",
+    "SECTORS",
+    "REJECT",
     "BLOCKMAP",
 ];
 

@@ -2,13 +2,11 @@ use bevy::prelude::*;
 
 use crate::game::{GameState, DoomGame};
 
-pub struct WadResourceTracker {
+pub struct WadResourceTracker {    
     pub is_loaded: bool,
-    pub failures: u32,
-    
-    images: Vec<Handle<Image>>,
+    pub failures: u32,    
+    images: bevy::utils::HashMap<String, Handle<Image>>,
     pub debug: Option<Handle<Image>>,
-
     once: bool,
 }
 
@@ -17,7 +15,7 @@ impl WadResourceTracker {
         WadResourceTracker { 
             is_loaded: false, 
             failures: 0, 
-            images: Vec::new(),
+            images: bevy::utils::HashMap::new(),
             debug: None,
             once: true,
         }
@@ -55,7 +53,7 @@ fn setup(
 
     asset_tracker.debug = Some(image.clone());
 
-    asset_tracker.images.push(image);
+    asset_tracker.images.insert(String::from("playb5"), image.clone());
 }
 
 fn check_assets(
@@ -65,14 +63,13 @@ fn check_assets(
     if !asset_tracker.is_loaded {
         let mut assets_loaded = 0;
         let mut assets_failed: u32 = 0;
-        for handle in &asset_tracker.images {
-            match server.get_load_state(handle) {
+        for key_value in &asset_tracker.images {
+            match server.get_load_state(key_value.1) {
                 bevy::asset::LoadState::Loaded => { assets_loaded = assets_loaded + 1 },
                 bevy::asset::LoadState::Failed => { assets_failed = assets_failed + 1 },
                 _ => { }
             }
-        }
-        
+        }        
         asset_tracker.is_loaded = assets_loaded == asset_tracker.get_asset_count();
         asset_tracker.failures = assets_failed;
     }

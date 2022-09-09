@@ -6,6 +6,7 @@ mod startup;
 mod text;
 mod player;
 mod doom;
+mod wad_resources;
 
 #[macro_use]
 extern crate lazy_static;
@@ -23,6 +24,51 @@ use bevy_flycam::MovementSettings;
 use game::GamePlugin;
 use wad_asset_generator::WadResourceTracker;
 
+// For now, only support wad at loading. Can make it later
+// that you can swop wads as the game is running
+
+// Game startup sequence:
+// - Load WAD
+// - Generate all necessary resources from WAD
+// - Start GAME
+fn main() {
+    // let wad = load_wad("doom1");
+    
+    App::new()
+        .insert_resource(WgpuSettings {
+            features: WgpuFeatures::POLYGON_MODE_LINE,
+            ..default()
+        })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(GamePlugin)
+        .add_plugin(wad_asset_generator::WadAssetGeneratorPlugin)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(WireframePlugin)
+        .insert_resource(MyDebugResource::new())
+        .add_startup_system(set_wrireframe)
+        .insert_resource(MovementSettings {
+            sensitivity: 0.00015, // default: 0.00012
+            speed: 12.0, // default: 12.0
+        })
+        //.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+      //  .add_plugin(RapierDebugRenderPlugin::default())
+      //  .add_plugin(Physics::default())
+        // .add_plugin(heron::PhysicsPlugin::default())
+        .add_plugin(startup::StartupPlugin)
+    //    .add_plugin(wad_resources::WadResourcesPlugin)
+       // .add_plugin(player::PlayerPlugin)
+    //    .add_plugin(DemoPlugin)
+        // .add_plugin(debug::DebugPlugin)
+        //.add_plugin(level::LevelPlugin)
+        //.add_plugin(player::PlayerPlugin)
+      //  .add_startup_system(setup_physics)
+        .add_system(core_keyboard_input)
+        .add_system(test_model)
+        .run();
+}
+
+
+
 struct MyDebugResource {
     parsed_colors: bool,
     color_data: Vec<[u8; 4]>,
@@ -39,41 +85,6 @@ impl MyDebugResource {
     }
 }
 
-fn main() {
-
- //   load_wad("doom");
-
-    App::new()
-        .insert_resource(WgpuSettings {
-            features: WgpuFeatures::POLYGON_MODE_LINE,
-            ..default()
-        })
-        .add_plugins(DefaultPlugins)        
-        .add_plugin(GamePlugin)
-        .add_plugin(wad_asset_generator::WadAssetGeneratorPlugin)
-        .add_plugin(PlayerPlugin)
-        .add_plugin(WireframePlugin)
-        .insert_resource(MyDebugResource::new())
-        .add_startup_system(set_wrireframe)
-        .insert_resource(MovementSettings {
-            sensitivity: 0.00015, // default: 0.00012
-            speed: 12.0, // default: 12.0
-        })
-        //.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-      //  .add_plugin(RapierDebugRenderPlugin::default())
-      //  .add_plugin(Physics::default())
-        // .add_plugin(heron::PhysicsPlugin::default())
-        .add_plugin(startup::StartupPlugin)
-        .add_plugin(player::PlayerPlugin)
-    //    .add_plugin(DemoPlugin)
-        // .add_plugin(debug::DebugPlugin)
-        //.add_plugin(level::LevelPlugin)
-        //.add_plugin(player::PlayerPlugin)
-      //  .add_startup_system(setup_physics)
-        .add_system(core_keyboard_input)
-        .add_system(test_model)
-        .run();
-}
 
 fn set_wrireframe(
     mut commands: Commands,
@@ -101,6 +112,9 @@ fn test_model(
 
     println!("spawning...");
 
+    let mut w = 0_u32;
+    let mut h = 0_u32;
+
     if asset_tracker.is_loaded && !debug_resource.parsed_colors {
         debug_resource.parsed_colors = true;
 
@@ -110,6 +124,11 @@ fn test_model(
            
         let img = server.get(&handle).unwrap();
     
+        w = img.texture_descriptor.size.width;
+        h = img.texture_descriptor.size.height;
+
+        println!("w {}, h {}", w, h);
+
         let mut i = 0;
         while i < img.data.len() {
             debug_resource.color_data.push([
@@ -122,20 +141,20 @@ fn test_model(
         }
     }
 
+    //let w = asset_tracker
+
+    println!("generating model...");
+    
     let mut x = 0;
     let mut y = 0;
     let mut count = 0;
-    for y in 0..54 {
-        for x in 0..35 {
+    for y in 0..h {
+        for x in 0..w {
 
-            let index = 35 * y + x;
-            let color = debug_resource.color_data.get(index);
+            let index = (35 * y + x) as usize;
+            let color = debug_resource.color_data[index];
             
-            if color == None {
-                continue;
-            }
-
-            let color = color.unwrap();
+            //let color = color.unwrap();
 
             if color[3] == 255 {
                 let fx = x as f32 * 0.1;
@@ -145,9 +164,6 @@ fn test_model(
                 let fg = color[1] as f32 / 255_f32;
                 let fb = color[2] as f32 / 255_f32;
 
-                println!("r {} g {} b {}", fr, fg, fb);
-                
-                println!("fx {} fy {}", fx, fy);
                 commands.spawn_bundle(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
                     material: materials.add(Color::rgb(fr, fg, fb).into()),
@@ -237,13 +253,6 @@ fn test_model(
     //     .insert(Restitution::coefficient(0.7))
     //     .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)));
 //}
-
-// fn load_wad(name: &str) {
-//     let cur_dir = std::env::current_dir().expect("Cannot resolve current directory");
-//     let cur_dir_as_str = cur_dir.as_os_str().to_str().expect("Couldn't convert OsStr to str");
-//     let full_path = format!("{}\\assets\\{name}.wad", cur_dir_as_str);
-//     let w = doom::wad::Wad::from_path(full_path);
-// }
 
 fn core_keyboard_input(
     input: Res<Input<KeyCode>>,

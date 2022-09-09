@@ -13,7 +13,6 @@ fn startup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-   
 
     // spawning a plane for reference to orient oneself in the world
     commands.spawn_bundle(PbrBundle {

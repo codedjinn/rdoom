@@ -3,6 +3,7 @@ Pew Pew Pew
 
 Project to fulfill two things, learning Rust and creating a game. 
 
-Yes its another doom 'clone', but mostly in using the assets.  All game logic will be
-created how I want it to be, probably will coincide with the original game, maybe not...
-will just have to see.
+Yes its another doom 'clone', but chosen because being from the generation
+that grew with it and pouring unhealthy amounts of time in it.  Nostalgia and 
+then you can grab shareware version of the WAD for free which means it has 
+already built maps and assets.

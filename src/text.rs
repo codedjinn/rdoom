@@ -2,8 +2,9 @@ use bevy::prelude::*;
 
 pub fn setup_text(
   mut commands: Commands,
-  asset_server: Res<AssetServer>
+  server: Res<AssetServer>,
 ) {
+    
 //   commands.spawn_bundle(TextBundle {
 //     style: Style {
 //         align_self: AlignSelf::FlexEnd,
