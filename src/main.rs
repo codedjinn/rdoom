@@ -1,314 +1,177 @@
-mod wad_asset_generator;
-mod game;
-mod debug;
-mod shared;
-mod startup;
-mod text;
-mod player;
-mod doom;
-mod wad_resources;
+mod wad_parser;
+mod array_util;
+mod resources;
 
 #[macro_use]
 extern crate lazy_static;
 
-use bevy::{
-    pbr::wireframe::{Wireframe, WireframeConfig, WireframePlugin},
-    prelude::*,
-    render::{render_resource::WgpuFeatures, settings::WgpuSettings},
-};
+use bevy::prelude::*;
+use wad_parser::{wad::Wad};
 
-use tri_mesh::*;
+struct RawWadResource {
+    wad: Option<Wad>,
+}
 
-use bevy_flycam::PlayerPlugin;
-use bevy_flycam::MovementSettings;
-use game::GamePlugin;
-use wad_asset_generator::WadResourceTracker;
-
-// For now, only support wad at loading. Can make it later
-// that you can swop wads as the game is running
-
-// Game startup sequence:
-// - Load WAD
-// - Generate all necessary resources from WAD
-// - Start GAME
 fn main() {
-    // let wad = load_wad("doom1");
-    
     App::new()
-        .insert_resource(WgpuSettings {
-            features: WgpuFeatures::POLYGON_MODE_LINE,
-            ..default()
-        })
         .add_plugins(DefaultPlugins)
-        .add_plugin(GamePlugin)
-        .add_plugin(wad_asset_generator::WadAssetGeneratorPlugin)
-        .add_plugin(PlayerPlugin)
-        .add_plugin(WireframePlugin)
-        .insert_resource(MyDebugResource::new())
-        .add_startup_system(set_wrireframe)
-        .insert_resource(MovementSettings {
-            sensitivity: 0.00015, // default: 0.00012
-            speed: 12.0, // default: 12.0
-        })
-        //.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-      //  .add_plugin(RapierDebugRenderPlugin::default())
-      //  .add_plugin(Physics::default())
-        // .add_plugin(heron::PhysicsPlugin::default())
-        .add_plugin(startup::StartupPlugin)
-    //    .add_plugin(wad_resources::WadResourcesPlugin)
-       // .add_plugin(player::PlayerPlugin)
-    //    .add_plugin(DemoPlugin)
-        // .add_plugin(debug::DebugPlugin)
-        //.add_plugin(level::LevelPlugin)
-        //.add_plugin(player::PlayerPlugin)
-      //  .add_startup_system(setup_physics)
-        .add_system(core_keyboard_input)
-        .add_system(test_model)
+        .insert_resource(RawWadResource { wad: None })
+        //.add_startup_system(load_wad_system.chain(parse_wad))
+        //.add_startup_system(parse_wad)
+        .add_system(handle_keys)
+        
         .run();
 }
 
-
-
-struct MyDebugResource {
-    parsed_colors: bool,
-    color_data: Vec<[u8; 4]>,
-    debug_model_spawn: bool
-}
-
-impl MyDebugResource {
-    fn new() -> Self {
-        MyDebugResource {
-            parsed_colors: false,
-            color_data: Vec::new(),
-            debug_model_spawn: false,
-        }
-    }
-}
-
-
-fn set_wrireframe(
-    mut commands: Commands,
-    mut wireframe_config: ResMut<WireframeConfig>,
-) {
-    commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 0.2,
-    });
-
- //   wireframe_config.global = true;
-}
-
-fn test_model(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut asset_tracker: ResMut<WadResourceTracker>,
-    mut debug_resource: ResMut<MyDebugResource>,
-    server: Res<Assets<Image>>
-) {
-    if debug_resource.debug_model_spawn == true {
-        return;
-    }
-
-    println!("spawning...");
-
-    let mut w = 0_u32;
-    let mut h = 0_u32;
-
-    if asset_tracker.is_loaded && !debug_resource.parsed_colors {
-        debug_resource.parsed_colors = true;
-
-        println!("assets parsed!");
-
-        let handle = asset_tracker.debug.as_ref().unwrap();
-           
-        let img = server.get(&handle).unwrap();
-    
-        w = img.texture_descriptor.size.width;
-        h = img.texture_descriptor.size.height;
-
-        println!("w {}, h {}", w, h);
-
-        let mut i = 0;
-        while i < img.data.len() {
-            debug_resource.color_data.push([
-                img.data.get(i).unwrap().clone(),
-                img.data.get(i + 1).unwrap().clone(),
-                img.data.get(i + 2).unwrap().clone(),
-                img.data.get(i + 3).unwrap().clone()
-            ]);
-            i = i + 4;
-        }
-    }
-
-    //let w = asset_tracker
-
-    println!("generating model...");
-    
-    let mut x = 0;
-    let mut y = 0;
-    let mut count = 0;
-    for y in 0..h {
-        for x in 0..w {
-
-            let index = (35 * y + x) as usize;
-            let color = debug_resource.color_data[index];
-            
-            //let color = color.unwrap();
-
-            if color[3] == 255 {
-                let fx = x as f32 * 0.1;
-                let fy = y as f32 * 0.1;
-
-                let fr = color[0] as f32 / 255_f32;
-                let fg = color[1] as f32 / 255_f32;
-                let fb = color[2] as f32 / 255_f32;
-
-                commands.spawn_bundle(PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
-                    material: materials.add(Color::rgb(fr, fg, fb).into()),
-                    transform: Transform::from_xyz(fx, fy, 0.0),
-                    ..default()
-                });    
-            }
-        }
-
-        if count > 200 {
-            break;
-        }
-        count = count + 1;
-    }
-
-    debug_resource.debug_model_spawn = true;
-
-//     let mut mesh1 = MeshBuilder::new().cube().build().unwrap();
-//     mesh1.scale(0.1);
-//     let mut mesh2 = MeshBuilder::new().cube().build().unwrap();
-//     mesh2.scale(0.1);
-
-//     let pos = tri_mesh::mesh::math::Vec3 { x:0.2, y:0.0, z:0.0};
-//     mesh2.translate(pos);
-
-//     // Split the two meshes at their intersection creating two sets of sub meshes
-//     let (mut meshes1, mut meshes2) = mesh1.split_at_intersection(&mut mesh2);
-
-//     // Choose two sub meshes to merge (here we just choose one sub mesh from each of the original meshes)
-//     let mut result = meshes1.first().unwrap().clone();
-//     result.merge_with(meshes2.first().unwrap()).unwrap();
-
-//     let mut merged_mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
-    
-//     let mut vertices: Vec<[f32; 3]> = Vec::new();
-//     let mut normals: Vec<[f32; 3]> = Vec::new();
-//   //  let mut uvs: Vec<[f32; 2]> = Vec::new();
-
-//     let mut i = 0;
-//     while (i < result.positions_buffer_f32().len()) {
-//         let x = result.positions_buffer_f32().get(i).unwrap().clone();
-//         let y = result.positions_buffer_f32().get(i + 1).unwrap().clone();
-//         let z = result.positions_buffer_f32().get(i + 2).unwrap().clone();
-//         vertices.push([x,y,z]);
-//         i = i + 3;
-//     }
-
-//     i = 0;
-//     while (i <result.normals_buffer_f32().len()) {
-//         let x = result.normals_buffer_f32().get(i).unwrap().clone();
-//         let y = result.normals_buffer_f32().get(i + 1).unwrap().clone();
-//         let z = result.normals_buffer_f32().get(i + 2).unwrap().clone();
-//         normals.push([x,y,z]);
-//         i = i + 3;
-//     }
-
-//     let merged_indices = bevy::render::mesh::Indices::U32(result.indices_buffer());
-//     merged_mesh.set_indices(Some(merged_indices));
-//     merged_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-//     merged_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    
-//     commands.spawn_bundle(PbrBundle {
-//         mesh: meshes.add(merged_mesh),
-//         material: materials.add(Color::rgb(1.0, 0.5, 0.3).into()),
-//         ..Default::default()
-//     });
-
-    // commands.spawn_bundle(PbrBundle {
-    //     mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
-    //     material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-    //     ..default()
-    // });
-}
-
-//fn setup_physics(mut commands: Commands) {
-    /* Create the ground. */
-    // commands
-    //     .spawn()
-    //     .insert(Collider::cuboid(100.0, 0.1, 100.0))
-    //         .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -2.0, 0.0))); 
-
-    /* Create the bouncing ball. */
-    // commands
-    //     .spawn()
-    //     .insert(RigidBody::Dynamic)
-    //     .insert(Collider::ball(0.5))
-    //     .insert(Restitution::coefficient(0.7))
-    //     .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)));
-//}
-
-fn core_keyboard_input(
+fn handle_keys(
     input: Res<Input<KeyCode>>,
-
 ) {
     if input.pressed(KeyCode::F1) {
         std::process::exit(0);
     }
 }
 
-pub struct DemoPlugin;
 
-impl Plugin for DemoPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_scene);
-    }
-}
+// fn parse_wad(
+//     wad_resource: Res<WadResource>
+// ) {
+//     println!("--- parse_wad ---");
 
-fn setup_scene(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // // plane
-    // commands.spawn_bundle(PbrBundle {
-    //     mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
-    //     material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-    //     ..default()
-    // });
+//     let wad = wad_resource.wad.as_ref().unwrap();
 
-    // // cube
-    // commands.spawn_bundle(PbrBundle {
-    //     mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-    //     material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-    //     transform: Transform::from_xyz(0.0, 0.5, 0.0),
-    //     ..default()
-    // });
+//     let palette_result = wad.get_by_name("PLAYPAL");
+//     if palette_result.is_none() {
+//         panic!("Can't create graphics without a paltte");
+//     }
 
-    // // light
-    // commands.spawn_bundle(PointLightBundle {
-    //     point_light: PointLight {
-    //         intensity: 1500.0,
-    //         shadows_enabled: true,
-    //         ..default()
-    //     },
-    //     transform: Transform::from_xyz(4.0, 8.0, 4.0),
-    //     ..default()
-    // });
-}
-// fn demo_physics(mut commands: Commands) {
-//     let collider = ColliderBundle {
-//         shape: ColliderShape::ball(40.0).into(),
+//     let palette_data = palette_result.unwrap().lump().data().get_bytes();
+    
+//     let mut palette: Vec<Color> = Vec::new();
 
-//         ..Default::default()
-//     };
-//     commands.spawn_bundle(collider)
-//         .insert(ColliderPositionSync::Discrete)
-//         .insert(ColliderDebugRender::with_id(1));
+//     let mut index = 0usize;
+//     while index < palette_data.len() {
+//         let r = palette_data[index];
+//         let g = palette_data[index + 1];
+//         let b = palette_data[index + 2];
+//         palette.push(Color::from(r, g, b));
+//         index = index + 3;
+//     }
+
+//     let playa = wad.get_by_name("PLAYA1");
+//     let bytes = playa.unwrap().lump().data().get_bytes();
+
+//     // get int values by supplying 4 bytes
+//     let width = wad_parser::convert::u8ref2_to_u32(&bytes[0..2]);
+//     let height = wad_parser::convert::u8ref2_to_u32(&bytes[2..4]);
+//     let left = wad_parser::convert::u8ref2_to_u32(&bytes[4..6]);
+//     let top = wad_parser::convert::u8ref2_to_u32(&bytes[6..8]);
+
+//     let size = (width * height) as usize;
+//     let mut pixel_data: Vec<u8> = Vec::with_capacity(size);
+//     for _ in 0..size {
+//         pixel_data.push(255);
+//     }
+
+//     for col in 0..width - 1 {
+//         let pointer_index = ((col * 4) + 8) as usize;
+//         let mut pointer = wad_parser::convert::u8ref_to_u32(&bytes[pointer_index..pointer_index+4]) as usize;
+
+//         loop {            
+//             let row = bytes[pointer];
+            
+//             pointer = pointer + 1;
+//             let postHeight = bytes[pointer];
+
+//             if (row != 255 && postHeight != 255) {
+//                 pointer = pointer + 1;
+
+//                 for i in 0..postHeight {
+//                     if row + i < height as u8 && pointer < bytes.len() - 1 {
+
+//                         pointer = pointer + 1;
+                        
+//                         let pixel_index = (row as u32 + i as u32) * width as u32 + col as u32;                        
+//                         pixel_data[pixel_index as usize] = bytes[pointer];
+//                     }
+//                 }
+
+//                 pointer = pointer + 1;
+//             }
+//             else {
+//                 break;
+//             }
+//             if pointer < bytes.len() - 1 {
+//                 break;
+//             }
+//             pointer = pointer + 1;
+//             if bytes[pointer] != 255 {
+//                 break;
+//             }
+//         }
+
+//         let mut bmp = bmp::Image::new(width, height);
+
+
+//         for y in 0..height - 1 {
+//             for x in 0..width - 1 {
+//                 let index = ((y * width) + x) as usize;
+//                 let nn = pixel_data[index];
+//                 if nn == 255 {
+//                     continue;
+//                 }
+//                 let value = palette[nn as usize];
+//                 let pixel = bmp::Pixel::new(value.r, value.g, value.b);
+//                 bmp.set_pixel(x, y, pixel);
+//             }
+//         }
+//     }
+//     ///let mut col_array: Vec<u32> = Vec::with_capacity(width as usize);
+//     // let mut pointer:usize = 0;
+//     // for i in 0..width {
+//     //     let mut row_start = 0;
+//     //     while row_start != 255 {
+//     //         row_start = bytes[pointer];
+//     //         if row_start == 255 {
+//     //             break;
+//     //         }
+//     //         let pixel_count = bytes[row_start as usize];
+//     //         pointer = pointer + 1;
+
+//     //         for j in 0..pixel_count {
+//     //             let pixel_val = bytes[pointer];
+//     //             let y = j + row_start;
+//     //             let x = i;
+//     //             pixel_data.push(pixel_val as u32);
+//     //         }
+//     //     }
+
+//     //     pointer = pointer + 1;
+//     // }    
+
+//     println!("DONE EXTRACTING DATA");
+
 // }
+
+fn load_wad_system(
+    mut wad_resource: ResMut<RawWadResource>
+) {
+    // TODO:
+    // Console prints should go to log file later
+    println!("Loading WAD...");
+
+    let cur_dir = std::env::current_dir().expect("Cannot resolve current directory");
+    
+    let cur_dir_as_str = cur_dir
+        .as_os_str()
+        .to_str()
+        .expect("Couldn't convert OsStr to str");
+
+    let full_path = format!("{}\\assets\\{}", cur_dir_as_str, "doom1.wad");
+
+    println!("From path, {}", full_path);
+
+    // from_path panics for any errors, no need to check
+    wad_resource.wad = Some(Wad::from_path(full_path));
+    
+    println!("WAD loaded");
+}
