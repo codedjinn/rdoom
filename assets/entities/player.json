@@ -1,0 +1,20 @@
+{
+    "name": "player",
+    "animations": [
+        {
+            "name": "idle",
+            "frames": [
+                "PLAYA1"
+            ]
+        },
+        {       
+            "name": "run",
+            "frames": [
+                "PLAYA1",
+                "PLAYB1",
+                "PLAYC1",
+                "PLAYD1"
+            ]
+        }
+    ]
+}
