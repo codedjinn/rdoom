@@ -1,22 +1,40 @@
 mod wad_parser;
 mod array_util;
 mod resources;
+mod defs;
 
 #[macro_use]
 extern crate lazy_static;
 
 use bevy::prelude::*;
+use defs::entity_def::EntityDefintion;
 use wad_parser::{wad::Wad};
+use resources::conversion::{self, ConvertedResources};
 
-struct RawWadResource {
+struct DoomWadResource {
     wad: Option<Wad>,
 }
 
+struct WadParsingStatus {
+    finished: bool
+}
+
+struct Converted {
+    resources: conversion::ConvertedResources
+}
+
 fn main() {
+    let contents = std::fs::read_to_string("assets/entities/player.json")
+        .expect("Should have been able to read the file");
+
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(RawWadResource { wad: None })
-        //.add_startup_system(load_wad_system.chain(parse_wad))
+        .insert_resource(DoomWadResource { wad: None })
+        .insert_resource(WadParsingStatus { finished: false })
+        .insert_resource(Converted { resources: conversion::ConvertedResources::new() })
+        .add_startup_system(load_wad_resource)
+        .add_startup_system(resources::load_definitions)
+        .add_system(parse_wad)
         //.add_startup_system(parse_wad)
         .add_system(handle_keys)
         
@@ -30,6 +48,58 @@ fn handle_keys(
         std::process::exit(0);
     }
 }
+
+fn parse_wad(
+    wad_resource: Res<DoomWadResource>,
+    parse_status: Res<WadParsingStatus>,
+    mut converted: ResMut<Converted>
+) {
+    if wad_resource.wad.is_some() && !parse_status.finished {
+        let wad = wad_resource.wad.as_ref().unwrap();
+
+        if !converted.resources.is_palette_loaded() {
+            println!("Setting palette from DOOM...");
+            let lump_playpal = wad.get_by_name("PLAYPAL");
+            if lump_playpal.is_none() {
+                panic!("Can't create graphics without a paltte");
+            }
+            let palette_data = lump_playpal.unwrap().lump().data().get_bytes();
+            converted.resources.set_palette(palette_data);
+            println!("Palette set!");
+
+            // testing, set picture
+            let playa = wad.get_by_name("PLAYC5");
+            let bytes = playa.unwrap().lump().data().get_bytes();
+
+            converted.resources.add_picture("PLAYC5", &bytes);
+        }
+    }
+}
+
+fn load_wad_resource(
+    mut wad_resource: ResMut<DoomWadResource>
+) {
+    // TODO:
+    // Console prints should go to log file later
+    println!("Loading WAD...");
+
+    let cur_dir = std::env::current_dir().expect("Cannot resolve current directory");
+    
+    let cur_dir_as_str = cur_dir
+        .as_os_str()
+        .to_str()
+        .expect("Couldn't convert OsStr to str");
+
+    let full_path = format!("{}\\assets\\{}", cur_dir_as_str, "doom1.wad");
+
+    println!("From path, {}", full_path);
+
+    // from_path panics for any errors, no need to check
+    wad_resource.wad = Some(Wad::from_path(full_path));
+    
+    println!("WAD loaded");
+}
+
 
 
 // fn parse_wad(
@@ -152,26 +222,3 @@ fn handle_keys(
 
 // }
 
-fn load_wad_system(
-    mut wad_resource: ResMut<RawWadResource>
-) {
-    // TODO:
-    // Console prints should go to log file later
-    println!("Loading WAD...");
-
-    let cur_dir = std::env::current_dir().expect("Cannot resolve current directory");
-    
-    let cur_dir_as_str = cur_dir
-        .as_os_str()
-        .to_str()
-        .expect("Couldn't convert OsStr to str");
-
-    let full_path = format!("{}\\assets\\{}", cur_dir_as_str, "doom1.wad");
-
-    println!("From path, {}", full_path);
-
-    // from_path panics for any errors, no need to check
-    wad_resource.wad = Some(Wad::from_path(full_path));
-    
-    println!("WAD loaded");
-}
