@@ -1,24 +1,29 @@
 mod wad_parser;
 mod array_util;
 mod resources;
-mod defs;
+mod definitions;
 
 #[macro_use]
 extern crate lazy_static;
 
 use bevy::prelude::*;
-use defs::entity_def::EntityDefintion;
 use wad_parser::{wad::Wad};
-use resources::conversion::{self, ConvertedResources};
+use resources::conversion::{self};
 
+#[derive(PartialEq, Eq)]
+enum LoadingStatus {
+    None,
+    Loaded,
+    Parsed
+}
+
+#[derive(Resource)]
 struct DoomWadResource {
     wad: Option<Wad>,
+    status: LoadingStatus
 }
 
-struct WadParsingStatus {
-    finished: bool
-}
-
+#[derive(Resource)]
 struct Converted {
     resources: conversion::ConvertedResources
 }
@@ -26,35 +31,39 @@ struct Converted {
 fn main() {
     let contents = std::fs::read_to_string("assets/entities/player.json")
         .expect("Should have been able to read the file");
+    println!("{}", contents);
 
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(DoomWadResource { wad: None })
-        .insert_resource(WadParsingStatus { finished: false })
+        .add_plugin(resources::ResourcesPlugin)
+        .add_system(bevy::window::close_on_esc)
+        .insert_resource(DoomWadResource { wad: None, status: LoadingStatus::None })
         .insert_resource(Converted { resources: conversion::ConvertedResources::new() })
-        .add_startup_system(load_wad_resource)
-        .add_startup_system(resources::load_definitions)
+        .add_startup_system(load_wad_from_disk)
+        //.add_startup_system(resources::load_definitions)
         .add_system(parse_wad)
         //.add_startup_system(parse_wad)
-        .add_system(handle_keys)
-        
+        .add_system(handle_keys)  
         .run();
 }
+
+// fn exit_system(mut exit: EventWriter<AppExit>) {
+//     exit.send(AppExit);
+// }
 
 fn handle_keys(
     input: Res<Input<KeyCode>>,
 ) {
-    if input.pressed(KeyCode::F1) {
-        std::process::exit(0);
-    }
+    // if input.pressed(KeyCode::F1) {
+    //     std::process::exit(0);
+    // }
 }
 
 fn parse_wad(
-    wad_resource: Res<DoomWadResource>,
-    parse_status: Res<WadParsingStatus>,
+    mut wad_resource: ResMut<DoomWadResource>,
     mut converted: ResMut<Converted>
 ) {
-    if wad_resource.wad.is_some() && !parse_status.finished {
+    if wad_resource.wad.is_some() && wad_resource.status == LoadingStatus::Loaded {
         let wad = wad_resource.wad.as_ref().unwrap();
 
         if !converted.resources.is_palette_loaded() {
@@ -73,10 +82,11 @@ fn parse_wad(
 
             converted.resources.add_picture("PLAYC5", &bytes);
         }
+        wad_resource.status = LoadingStatus::Parsed;
     }
 }
 
-fn load_wad_resource(
+fn load_wad_from_disk(
     mut wad_resource: ResMut<DoomWadResource>
 ) {
     // TODO:
@@ -96,6 +106,7 @@ fn load_wad_resource(
 
     // from_path panics for any errors, no need to check
     wad_resource.wad = Some(Wad::from_path(full_path));
+    wad_resource.status = LoadingStatus::Loaded;
     
     println!("WAD loaded");
 }
