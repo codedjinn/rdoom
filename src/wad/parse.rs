@@ -166,7 +166,16 @@ impl WadAssets {
 
         let find_sprite = wad.lumps().iter().find(|&x| x.name() == DOOM1_SPRITES[0]);
         if find_sprite.is_some() { 
-            println!("FOUND IT {}", find_sprite.unwrap().name());
+            
+            let sprite = find_sprite.unwrap();
+
+            let data = sprite.data();
+
+            let width = util::from_4_bytes_to_int(&data[0..4]);
+            let height = util::from_4_bytes_to_int(&data[4..8]);
+
+            println!("width, height, {}, {}", width, height);
+
         }
 
         return Ok(WadAssets {
@@ -204,8 +213,6 @@ impl WadAssets {
 
             }
         }
-        println!("thing count {}", result.len());
-
         return Ok(result);
     }
 
@@ -235,7 +242,6 @@ impl WadAssets {
                 result.push(new_pal);    
             }
         }
-        println!("PALS found {}", result.len());
         return Ok(result);
     }
 
