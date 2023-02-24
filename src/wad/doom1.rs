@@ -16,8 +16,8 @@ pub fn get_wad_type_from_name(name: &str) -> WadLumpType {
     return WadLumpType::Unknown;
 }
 
-pub static DOOM1_SPRITES: [&str; 1] = [
-    "SARGA1"
+pub static DOOM1_SPRITES: [&str; 2] = [
+    "SARGA1", "TROOE1"
 ];
 
 // pub static DOOM1_LOOKUP: [&str; 107] = [

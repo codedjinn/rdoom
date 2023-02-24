@@ -1,7 +1,7 @@
 pub mod util;
 mod doom1;
 mod parse;
-
+mod picture;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum WadType {
@@ -110,10 +110,23 @@ pub struct WadAssets {
 // bevy has its own Color struct which utilizes floats,
 // this keeps it so that we don't have type conflicts
 // Doom data 255 = transparent
+#[derive(Clone, Copy)]
 pub struct WadColor {
     pub r: u8,
     pub g: u8,
     pub b: u8
+}
+
+impl WadColor {
+    pub fn transparent() -> Self {
+        return WadColor {
+            r: 255, g:255, b:255
+        };
+    }
+
+    pub fn is_transparent(&self) -> bool {
+        return self.r == 255 && self.g == 255 && self.b == 255;
+    }
 }
 
 pub struct WadPalette {

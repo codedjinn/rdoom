@@ -1,6 +1,6 @@
 
 use super::doom1::DOOM1_SPRITES;
-use super::util::from_4_bytes_to_int;
+use super::picture::parse_picture;
 use super::{
     FileLump,
     Wad,
@@ -15,10 +15,12 @@ use super::{
 };
 use super::{util};
 use super::{doom1};
+use super::{picture};
 
 use std::io::{Read, Seek, SeekFrom};
 use std::fs::File;
 use anyhow::Result;
+use bevy::prelude::Image;
 
 impl Wad {
 
@@ -162,20 +164,15 @@ impl WadAssets {
     pub fn load_from(wad: &Wad) -> Result<WadAssets> {
 
         let palettes = WadAssets::resolve_palette(wad)?;
-        let things = WadAssets::resolve_thigs(wad)?;
+        let things = WadAssets::resolve_things(wad)?;
 
-        let find_sprite = wad.lumps().iter().find(|&x| x.name() == DOOM1_SPRITES[0]);
+        let find_sprite = wad.lumps().iter().find(|&x| x.name() == DOOM1_SPRITES[1]);
         if find_sprite.is_some() { 
             
             let sprite = find_sprite.unwrap();
 
             let data = sprite.data();
-
-            let width = util::from_4_bytes_to_int(&data[0..4]);
-            let height = util::from_4_bytes_to_int(&data[4..8]);
-
-            println!("width, height, {}, {}", width, height);
-
+            let picture = parse_picture(&data, &palettes[0]);
         }
 
         return Ok(WadAssets {
@@ -184,7 +181,7 @@ impl WadAssets {
         });
     }
 
-    fn resolve_thigs(wad: &Wad) -> Result<Vec<Thing>> {
+    fn resolve_things(wad: &Wad) -> Result<Vec<Thing>> {
         let things:Vec<_>
             = wad
                 .lumps()
@@ -235,8 +232,8 @@ impl WadAssets {
                     
                     new_pal.add(WadColor {
                         r: data[offset],
-                        g: data[offset],
-                        b: data[offset],
+                        g: data[offset+1],
+                        b: data[offset+2],
                     });
                 }
                 result.push(new_pal);    
@@ -249,3 +246,4 @@ impl WadAssets {
         return &self.palettes[0];
     }
 }
+

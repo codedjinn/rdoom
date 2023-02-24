@@ -13,13 +13,16 @@ struct Color {
 
 fn main() -> Result<()> {
 
+    // read file
     let file = std::fs::File::open("assets/doom1.wad")?;
 
+    // read WAD header
     let wad = wad::Wad::load_from_file(&file)?;
 
     let wad_assets = wad::WadAssets::load_from(&wad)?;
     
-    let pal = wad_assets.get_default_pal();
+    
+    // let pal = wad_assets.get_default_pal();
 
 //    println!("default pal size {}", pal.colors().len());
 
