@@ -24,46 +24,18 @@ fn main() -> Result<()> {
     let lines = wad_assets.get_line_defs();
     let vertices = wad_assets.get_vertexes();
 
-    // App::new()
-    //     .insert_resource(game::GameData { wad_assets: wad_assets })
-    //     .add_plugins(DefaultPlugins)
-    //     .add_plugin(PlayerPlugin)
-    //     .add_plugin(DebugLinesPlugin::default())
-    //     .insert_resource(MovementSettings {
-    //         sensitivity: 0.00015, // default: 0.00012
-    //         speed: 30.0, // default: 12.0
-    //     })
-    //     .add_startup_system(setup)
-    //     .add_startup_system(draw_map)
-    //     .run();
-
-
-    // let pal = wad_assets.get_default_pal();
-
-//    println!("default pal size {}", pal.colors().len());
-
-   // let pal = wad_result.get_palette(0);
-
-//    let pal = wad_result.get_color_palette(0);
-
-    //println!("PLAYPAL length {}", pal.colors.len());
-    // let pal 
-    //     = wad_result
-    //         .lumps()
-    //         .iter()
-    //         .find(|&x| x.lump_type() == WadLumpType::Palette);
-
-    // let bytes = pal.unwrap().data();
-
-    //let slice = &bytes[0..3];
-    //let r = wad::util::byte_array_4_to_int(slice);
-        
-    // let mut new_image = bmp::Image::new(255, 1);
-
-    // let mut i = 0usize;
-  
-
-    // new_image.save("d:\\pal2.bmp");
+    App::new()
+        .insert_resource(game::GameData { wad_assets: wad_assets })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(DebugLinesPlugin::default())
+        .insert_resource(MovementSettings {
+            sensitivity: 0.00015, // default: 0.00012
+            speed: 30.0, // default: 12.0
+        })
+        .add_startup_system(setup)
+        .add_startup_system(draw_map)
+        .run();
 
     Ok(())
 }

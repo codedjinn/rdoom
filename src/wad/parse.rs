@@ -176,7 +176,7 @@ impl WadAssets {
 
         let palettes = WadAssets::resolve_palette(wad)?;
         let things = WadAssets::resolve_things(wad)?;
-        let pictures = picture::resolve_pictures(wad, &palettes[0])?;
+      //  let pictures = picture::resolve_pictures(wad, &palettes[0])?;
         let line_defs = WadAssets::resolve_linedefs(wad)?;
         let vertexes = WadAssets::resolve_vertexes(wad)?;
         let sectorsResult = WadAssets::resolve_sectors(wad);
@@ -187,7 +187,7 @@ impl WadAssets {
 
         return Ok(WadAssets {
             palettes,
-            pictures,
+            pictures: Vec::new(),
             things,
             line_defs,
             vertexes,

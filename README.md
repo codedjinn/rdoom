@@ -1,9 +1,9 @@
 # rdoom
-Pew Pew Pew
 
-Project to fulfill two things, learning Rust and creating a game. 
+100% for fun project.
 
-Yes its another doom 'clone', but chosen because being from the generation
-that grew with it and pouring unhealthy amounts of time in it.  Nostalgia and 
-then you can grab shareware version of the WAD for free which means it has 
-already built maps and assets.
+Code is written as I am thinking it. Not writing tests until maybe I feel it will help me write some portions of the code better.
+
+# Description
+
+This is not a port of Doom, and not a clone per se, but will be using the shareware Doom WAD to implement my own twist on things. This means nothing definite and nothing is planned, this truly is just coding until something happens to be cohesive and playable.
