@@ -19,11 +19,9 @@ fn main() -> Result<()> {
     // read WAD header
     let wad = wad::Wad::load_from_file(&file)?;
 
+    // parse raw data in usable objects
     let wad_assets = wad::WadAssets::load_from(&wad)?;
     
-    let lines = wad_assets.get_line_defs();
-    let vertices = wad_assets.get_vertexes();
-
     App::new()
         .insert_resource(game::GameData { wad_assets: wad_assets })
         .add_plugins(DefaultPlugins)
@@ -31,7 +29,7 @@ fn main() -> Result<()> {
         .add_plugin(DebugLinesPlugin::default())
         .insert_resource(MovementSettings {
             sensitivity: 0.00015, // default: 0.00012
-            speed: 30.0, // default: 12.0
+            speed: 100.0, // default: 12.0
         })
         .add_startup_system(setup)
         .add_startup_system(draw_map)
@@ -66,12 +64,8 @@ fn draw_map(
     let vertexes = assets.get_vertexes();
     let line_defs = assets.get_line_defs();
 
-    let sectors = assets.get_sectors();
-
-    let mut dic = Dic::new();
-
     let count = 0;
-    for _ in 0..1 {
+    for _ in 0..2 {
         for line_def in line_defs {
             let start_vec = &vertexes[line_def.start as usize];
             let end_vec = &vertexes[line_def.end as usize];
@@ -89,69 +83,4 @@ fn draw_map(
             );
         }        
     }
-}
-
-
-struct KeyItem {
-    key: u16,
-    values: Vec<u16>
-}
-
-impl KeyItem {
-    fn new(key: u16) -> Self {
-        KeyItem {
-            key,
-            values: Vec::new()
-        }
-    }
-
-    fn add(&mut self, item: u16) {
-        self.values.push(item);
-    }
-}
-
-struct Dic {
-    entries: Vec<KeyItem>
-}
-
-impl Dic {
-
-    fn print(&self) {
-
-        for entry in &self.entries {
-            print!("key {}", entry.key);
-            for value in &entry.values {
-                print!(" {}", value);
-            }
-            println!("");
-        }
-
-    }
-
-    fn new() -> Self {
-        Dic {
-            entries: Vec::new()
-        }
-    }
-
-    fn set(&mut self, key: u16, value: u16) {
-
-        let mut index:Option<usize> = None;
-        for (i, entry) in self.entries.iter().enumerate() {
-            if entry.key == key {
-                index = Some(i);
-                break;
-            }
-        }
-        
-        if index.is_none() {
-            let mut key_item = KeyItem::new(key);
-            key_item.add(value);
-            self.entries.push(key_item);
-        }
-        else {
-            self.entries[index.unwrap()].add(value);
-        }
-    }
-
 }

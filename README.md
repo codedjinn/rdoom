@@ -10,3 +10,8 @@ This is not a port of Doom, and not a clone per se, but will be using the sharew
 
 Some things will be set in stone, like using Rust and Bevy (https://bevyengine.org/) for the rendering and gameplay part and any crates that will help me along the way.
 
+
+# Random
+
+All LineDefs rendered without any order!
+

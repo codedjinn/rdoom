@@ -104,7 +104,7 @@ impl Wad {
 
             // TODO: lazy code :P change to Option later
             let is_empty = bytes.is_empty();
-            let temp = if !is_empty {
+            let temp = if is_empty {
                 Vec::new()
             } else {
                 bytes
@@ -218,6 +218,7 @@ impl WadAssets {
                 }
             }
         }
+        println!("vertexes count {}", result.len());
         return Ok(result);
     }
 
