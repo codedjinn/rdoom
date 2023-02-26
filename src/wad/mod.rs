@@ -3,6 +3,8 @@ mod doom1;
 mod parse;
 mod picture;
 
+use picture::{WadPicture};
+
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum WadType {
     // Eish, it's broh-ken
@@ -104,7 +106,37 @@ pub enum WadLumpType {
 // WAD Assets
 pub struct WadAssets {
     palettes: Vec<WadPalette>,
-    things: Vec<Thing>
+    pictures: Vec<WadPicture>,
+    things: Vec<WadThing>,
+    line_defs: Vec<WadLineDef>,
+    vertexes: Vec<WadVertex>,
+    sectors: Vec<WadSector>,
+}
+
+impl WadAssets {
+    pub fn get_palettes(&self) -> &Vec<WadPalette> {
+        &self.palettes
+    }
+
+    pub fn get_pictures(&self) -> &Vec<WadPicture> {
+        &self.pictures
+    }
+
+    pub fn get_things(&self) -> &Vec<WadThing> {
+        &self.things
+    }
+
+    pub fn get_line_defs(&self) -> &Vec<WadLineDef> {
+        &self.line_defs
+    }
+
+    pub fn get_vertexes(&self) -> &Vec<WadVertex> {
+        &self.vertexes
+    }
+
+    pub fn get_sectors(&self) -> &Vec<WadSector> {
+        &self.sectors
+    }
 }
 
 // bevy has its own Color struct which utilizes floats,
@@ -149,10 +181,42 @@ impl WadPalette {
     }
 }
 
-pub struct Thing {
-    x: u8,
-    y: u8,
-    rot: u8,
-    type_id: u8,
-    flags: u8
+pub struct WadThing {
+    pub x: u16,
+    pub y: u16,
+    pub rot: u16,
+    pub type_id: u16,
+    pub flags: u16
+}
+
+// start & end are indexes in WadVertexes
+pub struct WadLineDef {
+    pub start: u16,
+    pub end: u16,
+    pub flags: u16,
+    pub special_type: u16,
+    pub sector_tag: u16,
+    pub right_side_def: u16,
+    pub left_side_def: u16
+}
+
+pub struct WadVertex {
+    pub x: u16,
+    pub y: u16
+}
+
+impl std::fmt::Display for WadVertex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+pub struct WadSector {
+    pub floor_height: u16,
+    pub ceiling_height: u16,
+    pub floor_tex_name: String,
+    pub ceiling_tex_name: String,
+    pub light_level: u16,
+    pub sector_type: u16,
+    pub tag: u16
 }

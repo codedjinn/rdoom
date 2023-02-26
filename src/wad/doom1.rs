@@ -47,6 +47,7 @@ lazy_static! {
         m.insert(String::from("SIDEDEFS"), WadLumpType::SideDefs);
         m.insert(String::from("VERTEXES"), WadLumpType::Vertexes);
         m.insert(String::from("SEGS"), WadLumpType::Segs);
+        m.insert(String::from("SECTORS"), WadLumpType::Sectors);
         m.insert(String::from("SSECTORS"), WadLumpType::SSectors);
         m.insert(String::from("NODES"), WadLumpType::Nodes);
         m.insert(String::from("BLOCKMAP"), WadLumpType::BlockMap);

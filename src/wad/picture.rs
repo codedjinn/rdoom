@@ -1,6 +1,11 @@
 use array2d::{Array2D, Error};
-use super::{WadColor, WadPalette};
+use std::vec::{Vec};
+use anyhow::Result;
+
+use super::{Wad, WadColor, WadPalette, WadLumpType};
 use super::{util};
+
+
 
 pub struct WadPicture {
     width: u32,
@@ -10,28 +15,25 @@ pub struct WadPicture {
     pixels: Option<Array2D<WadColor>>
 }
 
-impl WadPicture {
-    // pub fn save(&self, filename: &str) {
+pub fn resolve_pictures(wad: &Wad, pal: &WadPalette) -> Result<Vec<WadPicture>> {
 
-    //     //let path = std::path::Path::new(filename);
-
-    //     let img = bmp::Image::new(self.width, self.height);
-
-    //     for y in 0..self.pixels.unwrap().num_rows() {
-    //         for x in 0..self.pixels.unwrap().num_columns() {
-    //             let value = self.pixels[(x,y)];
-    //             img.set_pixel(x, y, self.pixels[(x,y)]);
-    //         }
-    //     }
+    // let find_sprite = wad.lumps().iter().find(|&x| x.name() == DOOM1_SPRITES[1]);
+    // if find_sprite.is_some() { 
         
+    //     let sprite = find_sprite.unwrap();
+
+    //     let data = sprite.data();
+    //     let picture = parse_picture(&data, pal);
     // }
+
+    return Ok(Vec::new());
 }
 
 pub fn parse_picture(data: &[u8], palette: &WadPalette) -> WadPicture {
-    let width = data[0] | data[1];
-    let height = data[2] | data[3];
-    let x_offset = data[4] | data[5];
-    let y_offset = data[6] | data[7];
+    let width =  util::from_2_bytes_to_int(&data[0..1]);
+    let height = util::from_2_bytes_to_int(&data[2..3]);
+    let x_offset = util::from_2_bytes_to_int(&data[4..5]);
+    let y_offset = util::from_2_bytes_to_int(&data[6..7]);
 
     let mut buffer = Vec::new();
 
@@ -106,7 +108,7 @@ pub fn parse_picture(data: &[u8], palette: &WadPalette) -> WadPicture {
     println!("width,height: {},{}", width, height);
 
     return WadPicture {
-        width: width as u32, 
+        width: width as u32,
         height: height as u32,
         x_offset: x_offset as u32,
         y_offset: y_offset as u32,
