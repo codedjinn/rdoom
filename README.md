@@ -15,4 +15,5 @@ Some things will be set in stone, like using Rust and Bevy (https://bevyengine.o
 
 All LineDefs rendered without any order!
 
-![Screenshot](screenshot.png)
+<img src="https://github.com/codedjinn/rdoom/blob/main/docs/images/screenshot.png"/>
+
