@@ -200,12 +200,12 @@ pub struct WadMap {
 }
 
 pub struct WadSeg {
-    start: u16,
-    end: u16,
-    angle: u16,
-    line_def_index: u16,
-    dir: u16,
-    offset: u16,
+    pub start: u16,
+    pub end: u16,
+    pub angle: u16,
+    pub line_def_index: u16,
+    pub dir: u16,
+    pub offset: u16,
 }
 
 pub struct WadThing {
@@ -225,16 +225,15 @@ pub struct WadLineDef {
     pub sector_tag: u16,
     pub right_side_def: u16,
     pub left_side_def: u16,
-    pub index: usize,
 }
 
 pub struct WadSideDef {
-    x_offset: u16,
-    y_offset: u16,
-    upper_texture: String,
-    middle_texture: String,
-    lower_texture: String,
-    num_faces: u16,
+    pub x_offset: u16,
+    pub y_offset: u16,
+    pub upper_texture: String,
+    pub middle_texture: String,
+    pub lower_texture: String,
+    pub num_faces: u16,
 }
 
 pub struct WadSector {
@@ -248,20 +247,26 @@ pub struct WadSector {
 }
 
 pub struct WadSSector {
-    seg_count: u16,
-    first_seg_number: u16,
+    pub seg_count: u16,
+    pub first_seg_number: u16,
 }
 
 pub struct WadNode {
-    line_x: u16,
-    line_y: u16,
-    change_x: u16,
-    change_y: u16,
-    r_bbox: u16,
-    l_bbox: u16,
-    right_child: u16,
-    left_child: u16,
+    pub line_x: u16,
+    pub line_y: u16,
+    pub change_x: u16,
+    pub change_y: u16,
+    pub r_bbox: WadBBox,
+    pub l_bbox: WadBBox,
+    pub right_child: u16,
+    pub left_child: u16,
+}
 
+pub struct WadBBox {
+    top: u16,
+    bottom: u16,
+    left: u16,
+    right: u16,
 }
 
 #[derive(Debug)]
