@@ -1,9 +1,12 @@
 pub mod util;
 mod doom1;
 mod parse;
+mod parse_assets;
 mod picture;
 
 use picture::{WadPicture};
+
+use std::str::FromStr;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum WadType {
@@ -15,7 +18,6 @@ pub enum WadType {
 }
 
 pub struct Wad {
-   // header: WadHeader,
     lumps: Vec<WadLump>,
 }
 
@@ -26,24 +28,23 @@ impl Wad {
         }
     }
 
-    // pub fn get_palette(&self, index: usize) -> &WadPalette {
-    //     &self.palettes[index]
-    // }
-
     pub fn lumps(&self) -> &Vec<WadLump> {
         &self.lumps
+    }
+
+    pub fn get_lump(&self, index: usize) -> &WadLump {
+        return &self.lumps[index];
     }
 }
 
 #[derive(Debug)]
 pub struct WadLump {
-    name: String,
+    name: String,    
+    lump_type: WadLumpType,
     data: Vec<u8>,
-    lump_type: WadLumpType
 }
 
 impl WadLump {
-
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -72,7 +73,6 @@ pub struct WadHeader {
     num_lumps: u32,
     dir_offset: u32,
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WadLumpType {
@@ -103,39 +103,63 @@ pub enum WadLumpType {
     Unknown
 }
 
+
+// Hard-coded goodness in support of Doom1 shareware WAD
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum WadLevel {
+    E1M1,
+    E1M2,
+    E1M3,
+    E1M4,
+    E1M5,
+    E1M6,
+    E1M7,
+    E1M8,
+    E1M9
+}
+
+impl FromStr for WadLevel {
+    
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "E1M1" => Ok(WadLevel::E1M1),
+            "E1M2" => Ok(WadLevel::E1M2),
+            "E1M3" => Ok(WadLevel::E1M3),
+            "E1M4" => Ok(WadLevel::E1M4),
+            "E1M5" => Ok(WadLevel::E1M5),
+            "E1M6" => Ok(WadLevel::E1M6),
+            "E1M7" => Ok(WadLevel::E1M7),
+            "E1M8" => Ok(WadLevel::E1M8),
+            "E1M9" => Ok(WadLevel::E1M9),
+            _ => Err(()),
+        }
+    }
+}
+
 // WAD Assets
 pub struct WadAssets {
-    palettes: Vec<WadPalette>,
-    pictures: Vec<WadPicture>,
-    things: Vec<WadThing>,
-    line_defs: Vec<WadLineDef>,
-    vertexes: Vec<WadVertex>,
-    sectors: Vec<WadSector>,
+    palettes: Option<Vec<WadPalette>>,
+    pictures: Option<Vec<WadPicture>>,
+    maps: Option<Vec<WadMap>>
 }
 
 impl WadAssets {
-    pub fn get_palettes(&self) -> &Vec<WadPalette> {
-        &self.palettes
+    pub fn new() -> Self {
+        WadAssets { 
+            palettes: None,
+            pictures: None,
+            maps: None
+        }
     }
 
-    pub fn get_pictures(&self) -> &Vec<WadPicture> {
-        &self.pictures
+    pub fn set_palettes(&mut self, pals: Vec<WadPalette>) {
+        self.palettes = Some(pals);
     }
 
-    pub fn get_things(&self) -> &Vec<WadThing> {
-        &self.things
-    }
-
-    pub fn get_line_defs(&self) -> &Vec<WadLineDef> {
-        &self.line_defs
-    }
-
-    pub fn get_vertexes(&self) -> &Vec<WadVertex> {
-        &self.vertexes
-    }
-
-    pub fn get_sectors(&self) -> &Vec<WadSector> {
-        &self.sectors
+    pub fn get_palettes(&self, index: usize) -> &WadPalette {
+        &self.palettes.as_ref().unwrap()[index]
     }
 }
 
@@ -161,6 +185,97 @@ impl WadColor {
     }
 }
 
+// For now will only support Doom1 shareware WAD, so hardcoding sturcture a bit
+pub struct WadMap {
+    level: WadLevel,
+
+    things: Vec<WadThing>,
+    line_defs: Vec<WadLineDef>,
+    side_defs: Vec<WadSideDef>,
+    vertexes: Vec<WadVertex>,
+    segs: Vec<WadSeg>,
+    ssectors: Vec<WadSSector>,
+    nodes: Vec<WadNode>,
+    sectors: Vec<WadSector>,
+}
+
+pub struct WadSeg {
+    start: u16,
+    end: u16,
+    angle: u16,
+    line_def_index: u16,
+    dir: u16,
+    offset: u16,
+}
+
+pub struct WadThing {
+    pub x: u16,
+    pub y: u16,
+    pub rot: u16,
+    pub type_id: u16,
+    pub flags: u16
+}
+
+// start & end are indexes in WadVertex
+pub struct WadLineDef {
+    pub start: u16,
+    pub end: u16,
+    pub flags: u16,
+    pub special_type: u16,
+    pub sector_tag: u16,
+    pub right_side_def: u16,
+    pub left_side_def: u16,
+    pub index: usize,
+}
+
+pub struct WadSideDef {
+    x_offset: u16,
+    y_offset: u16,
+    upper_texture: String,
+    middle_texture: String,
+    lower_texture: String,
+    num_faces: u16,
+}
+
+pub struct WadSector {
+    pub floor_height: u16,
+    pub ceiling_height: u16,
+    pub floor_tex_name: String,
+    pub ceiling_tex_name: String,
+    pub light_level: u16,
+    pub sector_type: u16,
+    pub tag: u16
+}
+
+pub struct WadSSector {
+    seg_count: u16,
+    first_seg_number: u16,
+}
+
+pub struct WadNode {
+    line_x: u16,
+    line_y: u16,
+    change_x: u16,
+    change_y: u16,
+    r_bbox: u16,
+    l_bbox: u16,
+    right_child: u16,
+    left_child: u16,
+
+}
+
+#[derive(Debug)]
+pub struct WadVertex {
+    pub x: u16,
+    pub y: u16,
+}
+
+impl std::fmt::Display for WadVertex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
 pub struct WadPalette {
     colors: Vec<WadColor>
 }
@@ -179,44 +294,4 @@ impl WadPalette {
     pub fn colors(&self) -> &Vec<WadColor> {
         &self.colors
     }
-}
-
-pub struct WadThing {
-    pub x: u16,
-    pub y: u16,
-    pub rot: u16,
-    pub type_id: u16,
-    pub flags: u16
-}
-
-// start & end are indexes in WadVertexes
-pub struct WadLineDef {
-    pub start: u16,
-    pub end: u16,
-    pub flags: u16,
-    pub special_type: u16,
-    pub sector_tag: u16,
-    pub right_side_def: u16,
-    pub left_side_def: u16
-}
-
-pub struct WadVertex {
-    pub x: u16,
-    pub y: u16
-}
-
-impl std::fmt::Display for WadVertex {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
-    }
-}
-
-pub struct WadSector {
-    pub floor_height: u16,
-    pub ceiling_height: u16,
-    pub floor_tex_name: String,
-    pub ceiling_tex_name: String,
-    pub light_level: u16,
-    pub sector_type: u16,
-    pub tag: u16
 }

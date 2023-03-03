@@ -2,7 +2,7 @@
 mod wad;
 mod game;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*};
 use bevy_flycam::{PlayerPlugin,MovementSettings};
 use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 
@@ -21,7 +21,7 @@ fn main() -> Result<()> {
 
     // parse raw data in usable objects
     let wad_assets = wad::WadAssets::load_from(&wad)?;
-    
+
     App::new()
         .insert_resource(game::GameData { wad_assets: wad_assets })
         .add_plugins(DefaultPlugins)
@@ -61,26 +61,34 @@ fn draw_map(
     mut lines: ResMut<DebugLines>
 ) {
     let assets = &game_data.wad_assets;
-    let vertexes = assets.get_vertexes();
-    let line_defs = assets.get_line_defs();
+    
+    // let map = assets.get_maps().iter().find(|&m| m.level == WadMapLevel::E1M1);
 
-    let count = 0;
-    for _ in 0..2 {
-        for line_def in line_defs {
-            let start_vec = &vertexes[line_def.start as usize];
-            let end_vec = &vertexes[line_def.end as usize];
+    // if map.is_none() {
+    //     return;
+    // }
 
-            let sx = start_vec.x as f32;// / 100f32;
-            let sy = start_vec.y as f32;// / 100f32;
-            let ex = end_vec.x as f32;// / 100f32;
-            let ey = end_vec.y as f32;// / 100f32;
-            lines.line_gradient(
-                Vec3::new(sx, sy, -100.0f32),
-                Vec3::new(ex, ey, -100.0f32),
-                1000.0,
-                Color::RED,
-                Color::RED,
-            );
-        }        
-    }
+    // let vertexes = assets.get_map_vertexes(map.unwrap().index);
+
+    // let verts = &vertexes.verts;
+
+    // let count = 0;
+    // for _ in 0..2 {
+    //     for line_def in line_defs {
+    //         let start_vec = &vertexes[line_def.start as usize];
+    //         let end_vec = &vertexes[line_def.end as usize];
+
+    //         let sx = start_vec.x as f32;// / 100f32;
+    //         let sy = start_vec.y as f32;// / 100f32;
+    //         let ex = end_vec.x as f32;// / 100f32;
+    //         let ey = end_vec.y as f32;// / 100f32;
+    //         lines.line_gradient(
+    //             Vec3::new(sx, sy, -100.0f32),
+    //             Vec3::new(ex, ey, -100.0f32),
+    //             1000.0,
+    //             Color::RED,
+    //             Color::RED,
+    //         );
+    //     }        
+    // }
 }
