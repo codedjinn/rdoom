@@ -8,7 +8,7 @@ use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
 
 use anyhow::Result;
 
-use wad::{WadLumpType, WadColor};
+use wad::{WadLumpType, WadColor, WadLevel};
 
 
 fn main() -> Result<()> {
@@ -61,6 +61,27 @@ fn draw_map(
     mut lines: ResMut<DebugLines>
 ) {
     let assets = &game_data.wad_assets;
+    
+    let map = assets.get_map(WadLevel::E1M1);
+
+    let vertexes = map.get_vertexes();
+    let lines_defs = map.get_line_defs();
+    for line_def in lines_defs {
+        let start_vec = &vertexes[line_def.start as usize];
+        let end_vec = &vertexes[line_def.end as usize];
+
+        let sx = start_vec.x as f32 / 100f32;
+        let sy = start_vec.y as f32 / 100f32;
+        let ex = end_vec.x as f32 / 100f32;
+        let ey = end_vec.y as f32 / 100f32;
+        lines.line_gradient(
+            Vec3::new(sx, sy, -100.0f32),
+            Vec3::new(ex, ey, -100.0f32),
+            1000.0,
+            Color::RED,
+            Color::BLUE,
+        );
+    }    
     
     // let map = assets.get_maps().iter().find(|&m| m.level == WadMapLevel::E1M1);
 

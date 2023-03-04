@@ -161,6 +161,17 @@ impl WadAssets {
     pub fn get_palettes(&self, index: usize) -> &WadPalette {
         &self.palettes.as_ref().unwrap()[index]
     }
+
+    pub fn get_map(&self, level: WadLevel) -> &WadMap {
+        let maps = &self.maps.as_ref().unwrap();
+        for i in 0..maps.len() {
+            let map = &maps[i];
+            if map.level == level {
+                return map;
+            }
+        }
+        panic!("No level found {:?}", level);
+    }
 }
 
 // bevy has its own Color struct which utilizes floats,
@@ -197,6 +208,36 @@ pub struct WadMap {
     ssectors: Vec<WadSSector>,
     nodes: Vec<WadNode>,
     sectors: Vec<WadSector>,
+}
+
+impl WadMap {
+    pub fn get_things(&self) -> &Vec<WadThing> {
+        &self.things
+    }
+
+    pub fn get_line_defs(&self) -> &Vec<WadLineDef> {
+        &self.line_defs
+    }
+
+    pub fn get_side_defs(&self) -> &Vec<WadSideDef> {
+        &self.side_defs
+    }
+
+    pub fn get_vertexes(&self) -> &Vec<WadVertex> {
+        &self.vertexes
+    }
+
+    pub fn get_segs(&self) -> &Vec<WadSeg> {
+        &self.segs
+    }
+
+    pub fn get_nodes(&self) -> &Vec<WadNode> {
+        &self.nodes
+    }
+
+    pub fn get_sectors(&self) -> &Vec<WadSector> {
+        &self.sectors
+    }
 }
 
 pub struct WadSeg {
