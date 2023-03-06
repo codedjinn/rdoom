@@ -13,7 +13,7 @@ Some things will be set in stone, like using Rust and Bevy (https://bevyengine.o
 
 # Random
 
-E1M1 line defs rendered but something is off but getting there...
+E1M1 'map view' :)
 
 <img src="https://github.com/codedjinn/rdoom/blob/main/docs/images/screenshot.png"/>
 
