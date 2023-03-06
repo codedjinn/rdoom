@@ -50,8 +50,8 @@ impl Wad {
 
             file.read_exact(&mut lump_bytes)?;
     
-            let file_pos = util::from_4_bytes_to_int(&lump_bytes[0..4]);
-            let size = util::from_4_bytes_to_int(&lump_bytes[4..8]);
+            let file_pos = util::from_4_bytes_to_uint(&lump_bytes[0..4]);
+            let size = util::from_4_bytes_to_uint(&lump_bytes[4..8]);
             let name = util::from_bytes_to_string(&lump_bytes[8..16]);
 
             let wad_type = doom1::get_wad_type_from_name(&name);
@@ -126,8 +126,8 @@ impl WadHeader {
             my_type = WadType::PWAD;
         }
 
-        let num_lumps = util::from_4_bytes_to_int(&header_bytes[4..8]);
-        let dir_offset = util::from_4_bytes_to_int(&header_bytes[8..12]);
+        let num_lumps = util::from_4_bytes_to_uint(&header_bytes[4..8]);
+        let dir_offset = util::from_4_bytes_to_uint(&header_bytes[8..12]);
         WadHeader {
             my_type,
             num_lumps,

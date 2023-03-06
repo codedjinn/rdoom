@@ -312,8 +312,8 @@ pub struct WadBBox {
 
 #[derive(Debug)]
 pub struct WadVertex {
-    pub x: u16,
-    pub y: u16,
+    pub x: i16,
+    pub y: i16,
 }
 
 impl std::fmt::Display for WadVertex {

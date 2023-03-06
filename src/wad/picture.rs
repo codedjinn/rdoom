@@ -30,10 +30,10 @@ pub fn resolve_pictures(wad: &Wad, pal: &WadPalette) -> Result<Vec<WadPicture>> 
 }
 
 pub fn parse_picture(data: &[u8], palette: &WadPalette) -> WadPicture {
-    let width =  util::from_2_bytes_to_int(&data[0..1]);
-    let height = util::from_2_bytes_to_int(&data[2..3]);
-    let x_offset = util::from_2_bytes_to_int(&data[4..5]);
-    let y_offset = util::from_2_bytes_to_int(&data[6..7]);
+    let width =  util::from_2_bytes_to_uint(&data[0..1]);
+    let height = util::from_2_bytes_to_uint(&data[2..3]);
+    let x_offset = util::from_2_bytes_to_uint(&data[4..5]);
+    let y_offset = util::from_2_bytes_to_uint(&data[6..7]);
 
     let mut buffer = Vec::new();
 
@@ -46,7 +46,7 @@ pub fn parse_picture(data: &[u8], palette: &WadPalette) -> WadPicture {
     for column in 0..width {
         let index = (column as usize * 4usize) + 8usize;
         
-        let mut pointer = util::from_4_bytes_to_int(&data[index..index + 4usize]) as usize;
+        let mut pointer = util::from_4_bytes_to_uint(&data[index..index + 4usize]) as usize;
 
         loop {
             let row_start = data[pointer];

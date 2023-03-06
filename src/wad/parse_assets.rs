@@ -140,11 +140,11 @@ fn resolve_things(data: &Vec<u8>) -> Vec<WadThing> {
     let mut offset = 0;
     while offset < data.len() {
         let thing = WadThing {
-            x: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            y: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
-            rot: util::from_2_bytes_to_int(&data[offset+4..offset+6]),
-            type_id: util::from_2_bytes_to_int(&data[offset+6..offset+8]),
-            flags: util::from_2_bytes_to_int(&data[offset+8..offset+10]),
+            x: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            y: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
+            rot: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
+            type_id: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
+            flags: util::from_2_bytes_to_uint(&data[offset+8..offset+10]),
         };
         result.push(thing);
 
@@ -159,13 +159,13 @@ fn resolve_linedefs(data: &Vec<u8>) -> Vec<WadLineDef> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadLineDef {
-            start: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            end: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
-            flags: util::from_2_bytes_to_int(&data[offset+4..offset+6]),
-            special_type: util::from_2_bytes_to_int(&data[offset+6..offset+8]),
-            sector_tag: util::from_2_bytes_to_int(&data[offset+8..offset+10]),
-            right_side_def: util::from_2_bytes_to_int(&data[offset+10..offset+12]),
-            left_side_def: util::from_2_bytes_to_int(&data[offset+12..offset+14]),
+            start: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            end: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
+            flags: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
+            special_type: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
+            sector_tag: util::from_2_bytes_to_uint(&data[offset+8..offset+10]),
+            right_side_def: util::from_2_bytes_to_uint(&data[offset+10..offset+12]),
+            left_side_def: util::from_2_bytes_to_uint(&data[offset+12..offset+14]),
         };
         result.push(new_item);
         offset = offset + 14;
@@ -180,12 +180,12 @@ fn resolve_sidedefs(data: &Vec<u8>) -> Vec<WadSideDef> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadSideDef {
-            x_offset: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            y_offset: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
+            x_offset: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            y_offset: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
             upper_texture: util::from_bytes_to_string(&data[offset+4..offset+12]),
             middle_texture: util::from_bytes_to_string(&data[offset+12..offset+20]),
             lower_texture: util::from_bytes_to_string(&data[offset+20..offset+28]),
-            num_faces: util::from_2_bytes_to_int(&data[offset+28..offset+30]),
+            num_faces: util::from_2_bytes_to_uint(&data[offset+28..offset+30]),
         };
         result.push(new_item);
         offset = offset + 30;
@@ -199,13 +199,13 @@ fn resolve_sectors(data: &Vec<u8>) -> Vec<WadSector> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadSector {
-            floor_height: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            ceiling_height: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
+            floor_height: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            ceiling_height: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
             floor_tex_name: util::from_bytes_to_string(&data[offset+4..offset+12]),
             ceiling_tex_name: util::from_bytes_to_string(&data[offset+12..offset+20]),
-            light_level: util::from_2_bytes_to_int(&data[offset+20..offset+22]),
-            sector_type: util::from_2_bytes_to_int(&data[offset+22..offset+24]),
-            tag: util::from_2_bytes_to_int(&data[offset+24..offset+26])
+            light_level: util::from_2_bytes_to_uint(&data[offset+20..offset+22]),
+            sector_type: util::from_2_bytes_to_uint(&data[offset+22..offset+24]),
+            tag: util::from_2_bytes_to_uint(&data[offset+24..offset+26])
         };
         result.push(new_item);
         offset = offset + 26;
@@ -220,12 +220,12 @@ fn resolve_segs(data: &Vec<u8>) -> Vec<WadSeg> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadSeg {
-            start: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            end: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
-            angle: util::from_2_bytes_to_int(&data[offset+4..offset+6]),
-            line_def_index: util::from_2_bytes_to_int(&data[offset+6..offset+8]),
-            dir: util::from_2_bytes_to_int(&data[offset+8..offset+10]),
-            offset: util::from_2_bytes_to_int(&data[offset+10..offset+12]),
+            start: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            end: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
+            angle: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
+            line_def_index: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
+            dir: util::from_2_bytes_to_uint(&data[offset+8..offset+10]),
+            offset: util::from_2_bytes_to_uint(&data[offset+10..offset+12]),
         };
         result.push(new_item);
         offset = offset + 12;
@@ -241,8 +241,8 @@ fn resolve_ssectors(data: &Vec<u8>) -> Vec<WadSSector> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadSSector {
-            seg_count: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            first_seg_number: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
+            seg_count: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            first_seg_number: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
         };
         result.push(new_item);
         offset = offset + 4;
@@ -257,14 +257,14 @@ fn resolve_nodes(data: &Vec<u8>) -> Vec<WadNode> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadNode {
-            line_x: util::from_2_bytes_to_int(&data[offset..offset+2]),
-            line_y: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
-            change_x: util::from_2_bytes_to_int(&data[offset+4..offset+6]),
-            change_y: util::from_2_bytes_to_int(&data[offset+6..offset+8]),
+            line_x: util::from_2_bytes_to_uint(&data[offset..offset+2]),
+            line_y: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
+            change_x: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
+            change_y: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
             r_bbox: from_bytes_to_bbox(&data[offset+8..offset+16]),
             l_bbox: from_bytes_to_bbox(&data[offset+16..offset+24]),
-            right_child: util::from_2_bytes_to_int(&data[offset+24..offset+26]),
-            left_child:  util::from_2_bytes_to_int(&data[offset+26..offset+28]),
+            right_child: util::from_2_bytes_to_uint(&data[offset+24..offset+26]),
+            left_child:  util::from_2_bytes_to_uint(&data[offset+26..offset+28]),
         };
         result.push(new_item);
         offset = offset + 28;
@@ -278,9 +278,9 @@ fn from_bytes_to_bbox(arr_u8: &[u8]) -> WadBBox {
     }
 
     return WadBBox {
-        top: util::from_2_bytes_to_int(&arr_u8[0..2]),
-        bottom: util::from_2_bytes_to_int(&arr_u8[2..4]),
-        left: util::from_2_bytes_to_int(&arr_u8[4..6]),
-        right: util::from_2_bytes_to_int(&arr_u8[6..8])
+        top: util::from_2_bytes_to_uint(&arr_u8[0..2]),
+        bottom: util::from_2_bytes_to_uint(&arr_u8[2..4]),
+        left: util::from_2_bytes_to_uint(&arr_u8[4..6]),
+        right: util::from_2_bytes_to_uint(&arr_u8[6..8])
     }
 }

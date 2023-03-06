@@ -28,7 +28,7 @@ fn main() -> Result<()> {
         .add_plugin(PlayerPlugin)
         .add_plugin(DebugLinesPlugin::default())
         .insert_resource(MovementSettings {
-            sensitivity: 0.00015, // default: 0.00012
+            sensitivity: 0.00012, // default: 0.00012
             speed: 100.0, // default: 12.0
         })
         .add_startup_system(setup)
@@ -60,23 +60,34 @@ fn draw_map(
     game_data: Res<game::GameData>,
     mut lines: ResMut<DebugLines>
 ) {
+    // reference point
+    lines.line_colored(Vec3::ZERO, Vec3::Y, 1000.0, Color::RED);
+    lines.line_colored(Vec3::ZERO, Vec3::X, 1000.0, Color::GREEN);
+    lines.line_colored(Vec3::ZERO, Vec3::Z, 1000.0, Color::BLUE);
+
+
     let assets = &game_data.wad_assets;
     
     let map = assets.get_map(WadLevel::E1M1);
 
     let vertexes = map.get_vertexes();
+
+    for i in 0..vertexes.len() {
+        println!("x {} y {}", &vertexes[i].x, &vertexes[i].y);
+    }
+
     let lines_defs = map.get_line_defs();
     for line_def in lines_defs {
         let start_vec = &vertexes[line_def.start as usize];
         let end_vec = &vertexes[line_def.end as usize];
 
         let sx = start_vec.x as f32 / 100f32;
-        let sy = start_vec.y as f32 / 100f32;
+        let sz = start_vec.y as f32 / 100f32;
         let ex = end_vec.x as f32 / 100f32;
-        let ey = end_vec.y as f32 / 100f32;
+        let ez = end_vec.y as f32 / 100f32;
         lines.line_gradient(
-            Vec3::new(sx, sy, -100.0f32),
-            Vec3::new(ex, ey, -100.0f32),
+            Vec3::new(sx, 0f32, sz),
+            Vec3::new(ex, 0f32, ez),
             1000.0,
             Color::RED,
             Color::BLUE,
