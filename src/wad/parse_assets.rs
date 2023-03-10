@@ -40,34 +40,35 @@ impl WadAssets {
             match lump.lump_type {
                 WadLumpType::Marker => {
                     let level_result = WadLevel::from_str(lump.name());
+                    println!("{:?}", lump.name());
                     match level_result {
                         Ok(level) => {
-                            println!("level {:?}", level);
+                          //  println!("level {:?}", level);
 
                             // hard-coded goodness :P
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                         //   println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let things = resolve_things(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                           // println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let line_defs:Vec<WadLineDef> = resolve_linedefs(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                            //println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let side_defs:Vec<WadSideDef> = resolve_sidedefs(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                           // println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let vertexes:Vec<WadVertex> = resolve_vertexes(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                            //println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let segs:Vec<WadSeg> = resolve_segs(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                            //println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let ssectors:Vec<WadSSector> = resolve_ssectors(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                            //println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let nodes:Vec<WadNode> = resolve_nodes(wad.get_lump(i).data());
                             i = i + 1;
-                            println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
+                            //println!("name {}, size {}", wad.get_lump(i).name(), wad.get_lump(i).data().len());
                             let sectors:Vec<WadSector> = resolve_sectors(wad.get_lump(i).data());
                             // don't care about Reject or Blockmap
                             i = i + 2;                            
@@ -140,9 +141,9 @@ fn resolve_things(data: &Vec<u8>) -> Vec<WadThing> {
     let mut offset = 0;
     while offset < data.len() {
         let thing = WadThing {
-            x: util::from_2_bytes_to_uint(&data[offset..offset+2]),
-            y: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
-            rot: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
+            x: util::from_2_bytes_to_int(&data[offset..offset+2]),
+            y: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
+            rot: util::from_2_bytes_to_int(&data[offset+4..offset+6]),
             type_id: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
             flags: util::from_2_bytes_to_uint(&data[offset+8..offset+10]),
         };
@@ -164,8 +165,8 @@ fn resolve_linedefs(data: &Vec<u8>) -> Vec<WadLineDef> {
             flags: util::from_2_bytes_to_uint(&data[offset+4..offset+6]),
             special_type: util::from_2_bytes_to_uint(&data[offset+6..offset+8]),
             sector_tag: util::from_2_bytes_to_uint(&data[offset+8..offset+10]),
-            right_side_def: util::from_2_bytes_to_uint(&data[offset+10..offset+12]),
-            left_side_def: util::from_2_bytes_to_uint(&data[offset+12..offset+14]),
+            right_side_def: util::from_2_bytes_to_int(&data[offset+10..offset+12]),
+            left_side_def: util::from_2_bytes_to_int(&data[offset+12..offset+14]),
         };
         result.push(new_item);
         offset = offset + 14;
@@ -185,7 +186,7 @@ fn resolve_sidedefs(data: &Vec<u8>) -> Vec<WadSideDef> {
             upper_texture: util::from_bytes_to_string(&data[offset+4..offset+12]),
             middle_texture: util::from_bytes_to_string(&data[offset+12..offset+20]),
             lower_texture: util::from_bytes_to_string(&data[offset+20..offset+28]),
-            num_faces: util::from_2_bytes_to_uint(&data[offset+28..offset+30]),
+            sector: util::from_2_bytes_to_uint(&data[offset+28..offset+30]),
         };
         result.push(new_item);
         offset = offset + 30;
@@ -199,8 +200,8 @@ fn resolve_sectors(data: &Vec<u8>) -> Vec<WadSector> {
     let mut offset = 0;
     while offset < data.len() {
         let new_item = WadSector {
-            floor_height: util::from_2_bytes_to_uint(&data[offset..offset+2]),
-            ceiling_height: util::from_2_bytes_to_uint(&data[offset+2..offset+4]),
+            floor_height: util::from_2_bytes_to_int(&data[offset..offset+2]),
+            ceiling_height: util::from_2_bytes_to_int(&data[offset+2..offset+4]),
             floor_tex_name: util::from_bytes_to_string(&data[offset+4..offset+12]),
             ceiling_tex_name: util::from_bytes_to_string(&data[offset+12..offset+20]),
             light_level: util::from_2_bytes_to_uint(&data[offset+20..offset+22]),

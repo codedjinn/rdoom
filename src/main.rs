@@ -1,16 +1,24 @@
-
 mod wad;
 mod game;
+mod rendering;
 
-use bevy::{prelude::*};
-use bevy_flycam::{PlayerPlugin,MovementSettings};
-use bevy_prototype_debug_lines::{DebugLines, DebugLinesPlugin};
+use bevy::{
+    prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
+};
+use bevy_flycam::{
+    PlayerPlugin,
+    MovementSettings
+};
+use bevy_prototype_debug_lines::{
+    DebugLines,
+    DebugLinesPlugin
+};
+use rendering::{debug, render_map_walls};
 
 use anyhow::Result;
 
-use wad::{WadLumpType, WadColor, WadLevel};
-
-
+use wad::{WadLevel};
 fn main() -> Result<()> {
 
     // read file
@@ -23,7 +31,11 @@ fn main() -> Result<()> {
     let wad_assets = wad::WadAssets::load_from(&wad)?;
 
     App::new()
-        .insert_resource(game::GameData { wad_assets: wad_assets })
+        .insert_resource(game::GameData { 
+            wad_assets: wad_assets,
+            player_start: Vec3::ZERO,
+            start_set: false,
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin)
         .add_plugin(DebugLinesPlugin::default())
@@ -31,96 +43,64 @@ fn main() -> Result<()> {
             sensitivity: 0.00012, // default: 0.00012
             speed: 100.0, // default: 12.0
         })
-        .add_startup_system(setup)
-        .add_startup_system(draw_map)
+        
+        // debug stuff here for now, when it grows move into plugins
+        .add_startup_system(debug::debug_anchor)
+        .add_startup_system(debug::debug_map_outline_render)
+        .add_startup_system(debug::debug_render_things)
+        .add_startup_system(extract_game_data)
+        .add_startup_system(render_map_walls)
+        .add_system(set_player_position)
+        .add_system(handle_input)
         .run();
 
     Ok(())
 }
 
-fn setup(
-    mut commands: Commands,
-    mut lines: ResMut<DebugLines>
+fn handle_input(
+    mut game_data: ResMut<game::GameData>,
+    mut query: Query<(&Camera3d, &mut Transform)>,
+    keys: Res<Input<KeyCode>>,
 ) {
-    // commands.spawn(Camera3dBundle {
-    //     transform: Transform::from_xyz(0.0, 0.0, 5.0),
-    //     ..default()
-    // });
-
-    // lines.line_gradient(
-    //     Vec3::new(1.0, -1.0, -1.0),
-    //     Vec3::new(-1.0, 1.0, 1.0),
-    //     9.0,
-    //     Color::CYAN,
-    //     Color::MIDNIGHT_BLUE,
-    // );
+    // jump between world origin and map player start for debugging
+    if keys.just_pressed(KeyCode::O) {
+        let mut trans = query.single_mut().1;
+        trans.translation = Vec3::ZERO;
+    }
+    else if keys.just_pressed(KeyCode::P) {
+         let mut trans = query.single_mut().1;
+        trans.translation = game_data.player_start;
+    }
 }
 
-fn draw_map(
-    game_data: Res<game::GameData>,
-    mut lines: ResMut<DebugLines>
+fn setup(
 ) {
-    // reference point
-    lines.line_colored(Vec3::ZERO, Vec3::Y, 1000.0, Color::RED);
-    lines.line_colored(Vec3::ZERO, Vec3::X, 1000.0, Color::GREEN);
-    lines.line_colored(Vec3::ZERO, Vec3::Z, 1000.0, Color::BLUE);
+   
+}
 
+fn extract_game_data(
+    mut game_data: ResMut<game::GameData>
+) {
+    for thing in game_data.wad_assets.get_map(WadLevel::E1M1).get_things() {
+        if thing.type_id == 1 {
+            game_data.player_start = Vec3::new(thing.x as f32, 0f32, thing.y as f32);
+            break;
+        }
+    }
+}
 
-    let assets = &game_data.wad_assets;
-    
-    let map = assets.get_map(WadLevel::E1M1);
-
-    let vertexes = map.get_vertexes();
-
-    for i in 0..vertexes.len() {
-        println!("x {} y {}", &vertexes[i].x, &vertexes[i].y);
+fn set_player_position(
+    mut game_data: ResMut<game::GameData>,
+    mut query: Query<(&Camera3d, &mut Transform)>,
+) {
+    if game_data.start_set {
+        return;
     }
 
-    let lines_defs = map.get_line_defs();
-    for line_def in lines_defs {
-        let start_vec = &vertexes[line_def.start as usize];
-        let end_vec = &vertexes[line_def.end as usize];
-
-        let sx = start_vec.x as f32 / 100f32;
-        let sz = start_vec.y as f32 / 100f32;
-        let ex = end_vec.x as f32 / 100f32;
-        let ez = end_vec.y as f32 / 100f32;
-        lines.line_gradient(
-            Vec3::new(sx, 0f32, sz),
-            Vec3::new(ex, 0f32, ez),
-            1000.0,
-            Color::RED,
-            Color::BLUE,
-        );
-    }    
-    
-    // let map = assets.get_maps().iter().find(|&m| m.level == WadMapLevel::E1M1);
-
-    // if map.is_none() {
-    //     return;
-    // }
-
-    // let vertexes = assets.get_map_vertexes(map.unwrap().index);
-
-    // let verts = &vertexes.verts;
-
-    // let count = 0;
-    // for _ in 0..2 {
-    //     for line_def in line_defs {
-    //         let start_vec = &vertexes[line_def.start as usize];
-    //         let end_vec = &vertexes[line_def.end as usize];
-
-    //         let sx = start_vec.x as f32;// / 100f32;
-    //         let sy = start_vec.y as f32;// / 100f32;
-    //         let ex = end_vec.x as f32;// / 100f32;
-    //         let ey = end_vec.y as f32;// / 100f32;
-    //         lines.line_gradient(
-    //             Vec3::new(sx, sy, -100.0f32),
-    //             Vec3::new(ex, ey, -100.0f32),
-    //             1000.0,
-    //             Color::RED,
-    //             Color::RED,
-    //         );
-    //     }        
-    // }
+    if !query.is_empty() {
+        println!("NOT EMPTY!");
+        let mut trans = query.single_mut().1;
+        trans.translation = game_data.player_start;
+        game_data.start_set = true;
+    }
 }

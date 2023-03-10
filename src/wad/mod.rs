@@ -4,6 +4,8 @@ mod parse;
 mod parse_assets;
 mod picture;
 
+use bevy::math::Vec3;
+
 use picture::{WadPicture};
 
 use std::str::FromStr;
@@ -250,9 +252,9 @@ pub struct WadSeg {
 }
 
 pub struct WadThing {
-    pub x: u16,
-    pub y: u16,
-    pub rot: u16,
+    pub x: i16,
+    pub y: i16,
+    pub rot: i16,
     pub type_id: u16,
     pub flags: u16
 }
@@ -264,8 +266,8 @@ pub struct WadLineDef {
     pub flags: u16,
     pub special_type: u16,
     pub sector_tag: u16,
-    pub right_side_def: u16,
-    pub left_side_def: u16,
+    pub right_side_def: i16,
+    pub left_side_def: i16,
 }
 
 pub struct WadSideDef {
@@ -274,12 +276,12 @@ pub struct WadSideDef {
     pub upper_texture: String,
     pub middle_texture: String,
     pub lower_texture: String,
-    pub num_faces: u16,
+    pub sector: u16,
 }
 
 pub struct WadSector {
-    pub floor_height: u16,
-    pub ceiling_height: u16,
+    pub floor_height: i16,
+    pub ceiling_height: i16,
     pub floor_tex_name: String,
     pub ceiling_tex_name: String,
     pub light_level: u16,
@@ -316,6 +318,11 @@ pub struct WadVertex {
     pub y: i16,
 }
 
+impl WadVertex {
+    pub fn to_vec(&self) -> Vec3 {
+        Vec3::new(self.x as f32, 0f32, self.y as f32)
+    }
+}
 impl std::fmt::Display for WadVertex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "({}, {})", self.x, self.y)

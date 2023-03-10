@@ -15,4 +15,6 @@ thiserror = "1.0"
 walkdir = "2"
 array2d = "0.3.0"
 bevy_flycam = "0.9.0"
+block-mesh = "0.2.0"
 bevy_prototype_debug_lines = { version = "0.9", features = ["3d"] }
+bevy_infinite_grid = { git = "https://github.com/ForesightMiningSoftwareCorporation/bevy_infinite_grid", branch = "main" }
